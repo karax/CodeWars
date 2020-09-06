@@ -22,11 +22,9 @@ constructor(
     val user = MediatorLiveData<UserResponse>()
     val error = MediatorLiveData<Throwable>()
 
-    override fun getUserFromAPI(userName: String): Single<UserResponse> {
-        return userAPI.getUser(userName)
-    }
-
     override fun getUser(userName: String) {
+
+
         disposable.add(userAPI.getUser(userName)
             .subscribeOn(Schedulers.newThread())
             .observeOn(AndroidSchedulers.mainThread())
