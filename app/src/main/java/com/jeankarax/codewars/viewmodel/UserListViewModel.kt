@@ -3,6 +3,7 @@ package com.jeankarax.codewars.viewmodel
 import android.app.Application
 import androidx.lifecycle.*
 import com.jeankarax.codewars.model.di.DaggerUserComponent
+import com.jeankarax.codewars.model.di.UserRepositoryModule
 import com.jeankarax.codewars.model.response.UserResponse
 import com.jeankarax.codewars.model.user.IUserRepository
 import javax.inject.Inject
@@ -48,6 +49,7 @@ class UserListViewModel(application: Application) : AndroidViewModel(application
         super.onCleared()
         userRepository.getUserObservable().removeObserver(mapUserObserver)
         userRepository.getErrorObservable().removeObserver(mapErrorObserver)
+        userRepository.clearDisposable()
     }
 
 

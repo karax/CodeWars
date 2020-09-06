@@ -1,5 +1,6 @@
 package com.jeankarax.codewars.model.user
 
+import android.app.Application
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import com.jeankarax.codewars.model.api.UserAPI
@@ -30,6 +31,7 @@ constructor(
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeWith(object: DisposableSingleObserver<UserResponse>(){
                 override fun onSuccess(t: UserResponse) {
+                    saveUserToDataBase(t)
                     user.postValue(t)
                 }
                 override fun onError(e: Throwable) {
@@ -48,5 +50,13 @@ constructor(
         return error
     }
 
+    private fun saveUserToDataBase(user: UserResponse){
+
+    }
+
+
+    override fun clearDisposable(){
+        disposable.clear()
+    }
 
 }

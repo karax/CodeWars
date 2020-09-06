@@ -11,4 +11,6 @@ interface IUserRepository {
 
     fun getErrorObservable(): LiveData<Throwable>
 
+    fun clearDisposable()
+
 }

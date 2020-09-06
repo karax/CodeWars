@@ -1,9 +1,17 @@
 package com.jeankarax.codewars.model.response
 
+import androidx.annotation.NonNull
+import androidx.room.Embedded
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import java.io.Serializable
+import java.util.*
 
+@Entity(tableName = "User")
 data class UserResponse (
 
+    @NonNull
+    @PrimaryKey
     val username: String = "",
 
     val name: String? = null,
@@ -16,9 +24,13 @@ data class UserResponse (
 
     val skills: List<String>? = null,
 
+    @Embedded(prefix = "ranks_")
     val ranks: Ranks? = null,
 
-    val codeChallenges: CodeChallenges? = null
+    @Embedded
+    val codeChallenges: CodeChallenges? = null,
+
+    var creationDate: Date? = null
 )
 
 data class CodeChallenges (
