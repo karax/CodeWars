@@ -33,6 +33,6 @@ abstract class UserLocalDataBase: RoomDatabase() {
             application.applicationContext,
             UserLocalDataBase::class.java,
             "userdatabase"
-        ).build()
+        ).allowMainThreadQueries().build()
     }
 }

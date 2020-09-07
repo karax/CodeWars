@@ -3,6 +3,7 @@ package com.jeankarax.codewars.viewmodel
 import android.app.Application
 import androidx.lifecycle.*
 import com.jeankarax.codewars.model.di.DaggerUserComponent
+import com.jeankarax.codewars.model.di.DaggerUserRepositoryComponent
 import com.jeankarax.codewars.model.di.UserRepositoryModule
 import com.jeankarax.codewars.model.response.UserResponse
 import com.jeankarax.codewars.model.user.IUserRepository
@@ -19,6 +20,9 @@ class UserListViewModel(application: Application) : AndroidViewModel(application
 
     init{
         DaggerUserComponent.create().inject(this)
+        DaggerUserRepositoryComponent.builder()
+            .build()
+            .inject(application)
     }
 
     private val mapUserObserver = Observer<UserResponse> {
@@ -32,6 +36,7 @@ class UserListViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun getUser(userName: String){
+        userRepository.setApplicationContext(getApplication())
         userRepository.getUser(userName)
         mapUser()
         mapError()
