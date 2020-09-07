@@ -1,8 +1,8 @@
 package com.jeankarax.codewars.model.di
 
 import com.jeankarax.codewars.model.api.UserAPI
-import com.jeankarax.codewars.model.user.IUserRepository
-import com.jeankarax.codewars.model.user.UserRepository
+import com.jeankarax.codewars.model.repository.IUserRepository
+import com.jeankarax.codewars.model.repository.UserRepository
 import dagger.Module
 import dagger.Provides
 

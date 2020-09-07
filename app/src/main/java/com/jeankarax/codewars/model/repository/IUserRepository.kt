@@ -1,4 +1,4 @@
-package com.jeankarax.codewars.model.user
+package com.jeankarax.codewars.model.repository
 
 import android.app.Application
 import androidx.lifecycle.LiveData

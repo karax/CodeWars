@@ -5,7 +5,7 @@ import androidx.lifecycle.*
 import com.jeankarax.codewars.model.di.DaggerUserComponent
 import com.jeankarax.codewars.model.di.DaggerUserRepositoryComponent
 import com.jeankarax.codewars.model.response.UserResponse
-import com.jeankarax.codewars.model.user.IUserRepository
+import com.jeankarax.codewars.model.repository.IUserRepository
 import javax.inject.Inject
 
 class UserListViewModel(application: Application) : AndroidViewModel(application) {
