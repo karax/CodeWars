@@ -29,10 +29,10 @@ constructor(
     lateinit var mApplication: Application
 
     private val disposable = CompositeDisposable()
-    val user = MediatorLiveData<UserResponse>()
-    val error = MediatorLiveData<Throwable>()
-    val userList = MediatorLiveData<ArrayList<UserResponse>>()
-    val isEmptyList = MediatorLiveData<Boolean>()
+    private val user = MediatorLiveData<UserResponse>()
+    private val error = MediatorLiveData<Throwable>()
+    private val userList = MediatorLiveData<ArrayList<UserResponse>>()
+    private val isEmptyList = MediatorLiveData<Boolean>()
 
     override fun getUser(userName: String) {
         val userFromDataBase: UserResponse?

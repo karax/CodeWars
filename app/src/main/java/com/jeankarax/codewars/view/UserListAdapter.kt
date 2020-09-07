@@ -1,14 +1,19 @@
 package com.jeankarax.codewars.view
 
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.navigation.ActionOnlyNavDirections
+import androidx.navigation.Navigation
 import androidx.recyclerview.widget.RecyclerView
 import com.jeankarax.codewars.R
 import com.jeankarax.codewars.model.response.UserResponse
 import kotlinx.android.synthetic.main.item_user.view.*
 
-class UserListAdapter(private val userList: ArrayList<UserResponse>):
+class UserListAdapter(
+    private val userList: ArrayList<UserResponse>
+):
     RecyclerView.Adapter<UserListAdapter.UserViewHolder>() {
 
     fun updateUserList(newUserList: List<UserResponse>){
@@ -26,6 +31,10 @@ class UserListAdapter(private val userList: ArrayList<UserResponse>):
     override fun getItemCount() = userList.size
 
     override fun onBindViewHolder(holder: UserViewHolder, position: Int) {
+        holder.view.setOnClickListener {
+            val action = UserListFragmentDirections.actionGoToChallenges()
+            Navigation.findNavController(it).navigate(action)
+        }
         if(userList[position].name.isNullOrBlank()){
             holder.view.tv_name.text = userList[position].username
         }else{

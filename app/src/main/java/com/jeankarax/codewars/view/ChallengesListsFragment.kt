@@ -5,11 +5,13 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.navigation.Navigation
+import androidx.lifecycle.ViewModelProviders
 import com.jeankarax.codewars.R
-import kotlinx.android.synthetic.main.fragment_challenges.*
+import com.jeankarax.codewars.viewmodel.ChallengesListsViewModel
 
-class ChallengesFragment : Fragment() {
+class ChallengesListsFragment : Fragment() {
+
+    private lateinit var viewModel: ChallengesListsViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -21,10 +23,9 @@ class ChallengesFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        btn_back.setOnClickListener {
-            val action = ChallengesFragmentDirections.actionBackToUsers()
-            Navigation.findNavController(it).navigate(action)
-        }
+        viewModel = ViewModelProviders.of(this).get(ChallengesListsViewModel::class.java)
+        viewModel.getLists("g964")
+
     }
 
 }

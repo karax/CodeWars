@@ -10,6 +10,8 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.navigation.ActionOnlyNavDirections
+import androidx.navigation.Navigation
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.jeankarax.codewars.R
@@ -20,7 +22,7 @@ class UserListFragment : Fragment() {
 
     private var isOrderedByRank: Boolean = false
     private lateinit var viewModel: UserListViewModel
-    private val userListAdapter = UserListAdapter(arrayListOf())
+    private lateinit var userListAdapter: UserListAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -37,9 +39,11 @@ class UserListFragment : Fragment() {
         setObservers()
         setOnClickListeners()
         viewModel.getUsersList()
+
     }
 
     private fun buildRecyclerView() {
+        userListAdapter = UserListAdapter(arrayListOf())
         rv_users_list.layoutManager = LinearLayoutManager(context)
         rv_users_list.adapter = userListAdapter
         rv_users_list.addItemDecoration(
@@ -65,6 +69,8 @@ class UserListFragment : Fragment() {
             }
         }
     }
+
+
 
     private fun setObservers() {
         viewModel.userLiveData.observe(viewLifecycleOwner, Observer { user ->

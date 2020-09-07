@@ -16,7 +16,7 @@
     </fragment>
     <fragment
         android:id="@+id/challengesFragment"
-        android:name="com.jeankarax.codewars.view.ChallengesFragment"
+        android:name="com.jeankarax.codewars.view.ChallengesListsFragment"
         android:label="fragment_challenges"
         tools:layout="@layout/fragment_challenges" >
         <action

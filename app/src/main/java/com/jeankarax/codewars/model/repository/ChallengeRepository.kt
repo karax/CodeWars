@@ -27,10 +27,10 @@ constructor(
     lateinit var mApplication: Application
 
     private val disposable = CompositeDisposable()
-    val authoredChallenges = MutableLiveData<ChallengesListResponse>()
-    val completedChallenges = MutableLiveData<ChallengesListResponse>()
-    val challenge = MutableLiveData<ChallengeResponse>()
-    val error = MediatorLiveData<Throwable>()
+    private val authoredChallenges = MutableLiveData<ChallengesListResponse>()
+    private val completedChallenges = MutableLiveData<ChallengesListResponse>()
+    private val challenge = MutableLiveData<ChallengeResponse>()
+    private val error = MediatorLiveData<Throwable>()
 
     override fun getChallenge(id: Int) {
         disposable.add(challengeAPI.getChallenge(id.toString())
@@ -79,6 +79,12 @@ constructor(
 
             }))
     }
+
+    override fun getChallengeLiveData(): LiveData<ChallengeResponse> = challenge
+
+    override fun getCompletedChallengesLiveData(): LiveData<ChallengesListResponse> = completedChallenges
+
+    override fun getAuthoredChallengesLiveData(): LiveData<ChallengesListResponse> = authoredChallenges
 
     override fun getErrorObservable(): LiveData<Throwable> = error
 
