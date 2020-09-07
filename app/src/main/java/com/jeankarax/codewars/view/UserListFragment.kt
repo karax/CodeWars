@@ -18,7 +18,7 @@ import kotlinx.android.synthetic.main.fragment_users.*
 
 class UserListFragment : Fragment() {
 
-    private var isOrdedByRank: Boolean = false
+    private var isOrderedByRank: Boolean = false
     private lateinit var viewModel: UserListViewModel
     private val userListAdapter = UserListAdapter(arrayListOf())
 
@@ -105,18 +105,18 @@ class UserListFragment : Fragment() {
 
     private fun showSortMenu() {
 
-        val options = arrayOf("Order by Rank")
-        val checkedItems = BooleanArray(1) { isOrdedByRank }
+        val options = arrayOf(getString(R.string.title_order_by_rank))
+        val checkedItems = BooleanArray(1) { isOrderedByRank }
 
         AlertDialog.Builder(requireContext())
-            .setNeutralButton("Cancel", null)
+            .setNeutralButton(getString(R.string.text_cancel), null)
             .setMultiChoiceItems(options, checkedItems) { dialog, which, isChecked ->
                 if (which == 0) {
                     if (isChecked){
-                        isOrdedByRank = true
+                        isOrderedByRank = true
                         viewModel.getSortedUserList()
                     }else{
-                        isOrdedByRank = false
+                        isOrderedByRank = false
                         viewModel.getUnsortedUserList()
                     }
                 }

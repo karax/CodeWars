@@ -2,4 +2,10 @@
     <string name="app_name">CodeWars</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="text_hint_search_by_user_name">Search by user name</string>
+    <string name="text_error_no_users_found">No users ever searched</string>
+    <string name="description_search_text_field">Type the username to search (mind the first letter that may be uppercase)</string>
+    <string name="description_search_button">search button, click to search username</string>
+    <string name="title_order_by_rank">Order by Rank</string>
+    <string name="text_cancel">Cancel</string>
 </resources>
