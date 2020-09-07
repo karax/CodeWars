@@ -16,4 +16,8 @@ interface IUserRepository {
 
     fun setApplicationContext(application: Application)
 
+    fun getUsersList(limit: Int)
+
+    fun getUsersListObservable(): LiveData<ArrayList<UserResponse>>
+
 }

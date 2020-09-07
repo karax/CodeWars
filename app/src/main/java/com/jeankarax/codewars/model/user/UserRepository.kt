@@ -16,6 +16,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.util.*
 import javax.inject.Inject
+import kotlin.collections.ArrayList
 import kotlin.coroutines.CoroutineContext
 
 class UserRepository
@@ -30,11 +31,14 @@ constructor(
     private val disposable = CompositeDisposable()
     val user = MediatorLiveData<UserResponse>()
     val error = MediatorLiveData<Throwable>()
+    val userList = MediatorLiveData<ArrayList<UserResponse>>()
+    val isEmptyList = MediatorLiveData<Boolean>()
 
     override fun getUser(userName: String) {
         val userFromDataBase: UserResponse?
         userFromDataBase = getUserFromDataBase(userName)
         if(null != userFromDataBase){
+            saveUserToDataBase(userFromDataBase)
             user.postValue(userFromDataBase)
         }else{
             disposable.add(userAPI.getUser(userName)
@@ -54,6 +58,20 @@ constructor(
         }
     }
 
+    override fun getUsersList(limit: Int) {
+        var userListFromDataBase: ArrayList<UserResponse>
+        userListFromDataBase = getLastUsers(limit) as ArrayList<UserResponse>
+        if(null != user){
+            userList.postValue(userListFromDataBase)
+        }else{
+            isEmptyList.postValue(true)
+        }
+    }
+
+    override fun getUsersListObservable(): LiveData<ArrayList<UserResponse>> {
+        return userList
+    }
+
     override fun getUserObservable(): LiveData<UserResponse> {
         return user
     }
@@ -61,6 +79,8 @@ constructor(
     override fun getErrorObservable(): LiveData<Throwable> {
         return error
     }
+
+
 
     private fun saveUserToDataBase(user: UserResponse){
         launch {
