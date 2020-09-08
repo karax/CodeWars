@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/usersFragment"
-        android:name="com.jeankarax.codewars.view.UserListFragment"
+        android:name="com.jeankarax.codewars.view.users.UserListFragment"
         android:label="fragment_users"
         tools:layout="@layout/fragment_users" >
         <action
@@ -16,11 +16,14 @@
     </fragment>
     <fragment
         android:id="@+id/challengesFragment"
-        android:name="com.jeankarax.codewars.view.ChallengesListsFragment"
+        android:name="com.jeankarax.codewars.view.challenges.ChallengesListsFragment"
         android:label="fragment_challenges"
         tools:layout="@layout/fragment_challenges" >
         <action
             android:id="@+id/actionBackToUsers"
             app:destination="@id/usersFragment" />
+        <argument
+            android:name="userName"
+            app:argType="string" />
     </fragment>
 </navigation>

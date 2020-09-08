@@ -61,7 +61,7 @@ constructor(
     override fun getUsersList(limit: Int) {
         var userListFromDataBase: ArrayList<UserResponse>
         userListFromDataBase = getLastUsers(limit) as ArrayList<UserResponse>
-        if(null != user){
+        if(null != userListFromDataBase){
             userList.postValue(userListFromDataBase)
         }else{
             isEmptyList.postValue(true)

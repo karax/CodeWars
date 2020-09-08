@@ -8,4 +8,6 @@
     <string name="description_search_button">search button, click to search username</string>
     <string name="title_order_by_rank">Order by Rank</string>
     <string name="text_cancel">Cancel</string>
+    <string name="text_bottom_menu_completed">Completed</string>
+    <string name="text_bottom_menu_authored">Authored</string>
 </resources>

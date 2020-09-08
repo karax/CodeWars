@@ -28,7 +28,7 @@ class ChallengesListsViewModel(application: Application): AndroidViewModel(appli
 
     private lateinit var mUserName: String
 
-    private val mapAuthoredListObserver = Observer<List<ChallengesListResponse>>{
+    private val mapListsObserver = Observer<List<ChallengesListResponse>>{
         auxCompletedChallengesList = it[0]
         auxAuthoredChallengeList = it[1]
         areListsOk.value = true
@@ -43,12 +43,16 @@ class ChallengesListsViewModel(application: Application): AndroidViewModel(appli
     }
 
     private fun mapLists() {
-        return challengeRepository.getAllChallengesLiveData().observeForever(mapAuthoredListObserver)
+        return challengeRepository.getAllChallengesLiveData().observeForever(mapListsObserver)
     }
 
     fun getLoadedCompletedList() = auxCompletedChallengesList
 
     fun getLoadedAuthoredList() = auxAuthoredChallengeList
 
-
+    override fun onCleared() {
+        super.onCleared()
+        challengeRepository.getAllChallengesLiveData().removeObserver(mapListsObserver)
+        challengeRepository.clearDisposable()
+    }
 }

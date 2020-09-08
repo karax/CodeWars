@@ -1,10 +1,8 @@
-package com.jeankarax.codewars.view
+package com.jeankarax.codewars.view.users
 
-import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.navigation.ActionOnlyNavDirections
 import androidx.navigation.Navigation
 import androidx.recyclerview.widget.RecyclerView
 import com.jeankarax.codewars.R
@@ -25,14 +23,16 @@ class UserListAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UserViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val view = inflater.inflate(R.layout.item_user, parent, false)
-        return UserViewHolder(view)
+        return UserViewHolder(
+            view
+        )
     }
 
     override fun getItemCount() = userList.size
 
     override fun onBindViewHolder(holder: UserViewHolder, position: Int) {
         holder.view.setOnClickListener {
-            val action = UserListFragmentDirections.actionGoToChallenges()
+            val action = UserListFragmentDirections.actionGoToChallenges(userList[position].username)
             Navigation.findNavController(it).navigate(action)
         }
         if(userList[position].name.isNullOrBlank()){
