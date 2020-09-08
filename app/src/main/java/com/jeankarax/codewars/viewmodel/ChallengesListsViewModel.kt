@@ -5,9 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import com.jeankarax.codewars.model.di.DaggerChallengeRepositoryComponent
-import com.jeankarax.codewars.model.repository.ChallengeRepository
 import com.jeankarax.codewars.model.repository.IChallengeRepository
-import com.jeankarax.codewars.model.response.ChallengeResponse
 import com.jeankarax.codewars.model.response.ChallengesListResponse
 import javax.inject.Inject
 
@@ -28,33 +26,29 @@ class ChallengesListsViewModel(application: Application): AndroidViewModel(appli
         challengeRepository.setApplicationContext(getApplication())
     }
 
-    private val mapAuthoredListObserver = Observer<ChallengesListResponse>{
-        auxAuthoredChallengeList = it
-        challengeRepository.getCompletedChallenges(mUserName, 0)
-        mapCompletedList()
-    }
-
-    private val mapCompletedListObserver = Observer<ChallengesListResponse>{
-        auxCompletedChallengesList = it
-        areListsOk.value = true
-    }
-
     private lateinit var mUserName: String
+
+    private val mapAuthoredListObserver = Observer<List<ChallengesListResponse>>{
+        auxCompletedChallengesList = it[0]
+        auxAuthoredChallengeList = it[1]
+        areListsOk.value = true
+        isLoading.value = false
+    }
 
     fun getLists(userName: String){
         isLoading.value = true
         mUserName = userName
-        challengeRepository.getAuthoredChallenges(userName)
+        challengeRepository.getCompletedChallenges(userName, 0, true)
         mapLists()
     }
 
     private fun mapLists() {
-        return challengeRepository.getAuthoredChallengesLiveData().observeForever(mapAuthoredListObserver)
+        return challengeRepository.getAllChallengesLiveData().observeForever(mapAuthoredListObserver)
     }
 
-    private fun mapCompletedList(){
-        return challengeRepository.getCompletedChallengesLiveData().observeForever(mapCompletedListObserver)
-    }
+    fun getLoadedCompletedList() = auxCompletedChallengesList
+
+    fun getLoadedAuthoredList() = auxAuthoredChallengeList
 
 
 }

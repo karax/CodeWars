@@ -27,10 +27,11 @@ constructor(
     lateinit var mApplication: Application
 
     private val disposable = CompositeDisposable()
-    private val authoredChallenges = MutableLiveData<ChallengesListResponse>()
+    private val allChallenges = MutableLiveData<MutableList<ChallengesListResponse>>()
     private val completedChallenges = MutableLiveData<ChallengesListResponse>()
     private val challenge = MutableLiveData<ChallengeResponse>()
     private val error = MediatorLiveData<Throwable>()
+    private var auxAllChallengesList = mutableListOf<ChallengesListResponse>()
 
     override fun getChallenge(id: Int) {
         disposable.add(challengeAPI.getChallenge(id.toString())
@@ -48,13 +49,18 @@ constructor(
             }))
     }
 
-    override fun getCompletedChallenges(userName: String, page: Int) {
+    override fun getCompletedChallenges(userName: String, page: Int, isFirstCall: Boolean) {
         disposable.add(challengeAPI.getCompletedChallenges(userName, page)
             .subscribeOn(Schedulers.newThread())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeWith(object : DisposableSingleObserver<ChallengesListResponse>(){
                 override fun onSuccess(t: ChallengesListResponse) {
-                    completedChallenges.postValue(t)
+                    if (isFirstCall){
+                        auxAllChallengesList.add(t)
+                        getAuthoredChallenges(userName)
+                    }else {
+                        completedChallenges.postValue(t)
+                    }
                 }
 
                 override fun onError(e: Throwable) {
@@ -70,7 +76,8 @@ constructor(
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeWith(object : DisposableSingleObserver<ChallengesListResponse>(){
                 override fun onSuccess(t: ChallengesListResponse) {
-                    authoredChallenges.postValue(t)
+                    auxAllChallengesList.add(t)
+                    allChallenges.postValue(auxAllChallengesList)
                 }
 
                 override fun onError(e: Throwable) {
@@ -84,7 +91,7 @@ constructor(
 
     override fun getCompletedChallengesLiveData(): LiveData<ChallengesListResponse> = completedChallenges
 
-    override fun getAuthoredChallengesLiveData(): LiveData<ChallengesListResponse> = authoredChallenges
+    override fun getAllChallengesLiveData(): LiveData<MutableList<ChallengesListResponse>> = allChallenges
 
     override fun getErrorObservable(): LiveData<Throwable> = error
 

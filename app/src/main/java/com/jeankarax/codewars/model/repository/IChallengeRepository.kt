@@ -9,7 +9,7 @@ interface IChallengeRepository {
 
     fun getChallenge(id: Int)
 
-    fun getCompletedChallenges(userName: String, page: Int)
+    fun getCompletedChallenges(userName: String, page: Int, isFirstCall: Boolean)
 
     fun getAuthoredChallenges(userName: String)
 
@@ -17,7 +17,7 @@ interface IChallengeRepository {
 
     fun getCompletedChallengesLiveData(): LiveData<ChallengesListResponse>
 
-    fun getAuthoredChallengesLiveData(): LiveData<ChallengesListResponse>
+    fun getAllChallengesLiveData(): LiveData<MutableList<ChallengesListResponse>>
 
     fun getErrorObservable(): LiveData<Throwable>
 
