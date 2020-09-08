@@ -16,7 +16,6 @@ import androidx.navigation.Navigation
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.jeankarax.codewars.R
-import com.jeankarax.codewars.model.response.UserResponse
 import com.jeankarax.codewars.viewmodel.UserListViewModel
 import kotlinx.android.synthetic.main.fragment_users.*
 
@@ -41,7 +40,6 @@ class UserListFragment : Fragment() {
         setObservers()
         setOnClickListeners()
         viewModel.getUsersList()
-
     }
 
     private fun buildRecyclerView() {
@@ -77,7 +75,7 @@ class UserListFragment : Fragment() {
 
     private fun setObservers() {
 
-        viewModel.userListLiveData.observeOnce(viewLifecycleOwner, Observer {
+        viewModel.userListLiveData.observe(viewLifecycleOwner, Observer {
                 rv_users_list.apply {
                     it?.let {
                         userListAdapter.updateUserList(it)

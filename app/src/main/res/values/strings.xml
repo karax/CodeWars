@@ -10,4 +10,5 @@
     <string name="text_cancel">Cancel</string>
     <string name="text_bottom_menu_completed">Completed</string>
     <string name="text_bottom_menu_authored">Authored</string>
+    <string name="title_challenges_toolbar">%s\'s challenges\</string>
 </resources>

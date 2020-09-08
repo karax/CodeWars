@@ -9,6 +9,7 @@ import android.view.View.VISIBLE
 import android.view.ViewGroup
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.viewpager2.widget.ViewPager2
 import com.jeankarax.codewars.R
 import com.jeankarax.codewars.viewmodel.ChallengesListsViewModel
 import kotlinx.android.synthetic.main.fragment_challenges.*
@@ -30,13 +31,13 @@ class ChallengesListsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         viewModel = ViewModelProviders.of(this).get(ChallengesListsViewModel::class.java)
-
         setObservers()
         arguments?.let {
             userName = ChallengesListsFragmentArgs.fromBundle(it).userName
         }
         viewModel.getLists(userName)
-
+        mt_challenges_toolbar.title = getString(R.string.title_challenges_toolbar, userName)
+        setNavBottomBarListeners()
     }
 
     private fun setObservers() {
@@ -55,6 +56,29 @@ class ChallengesListsFragment : Fragment() {
             }
         })
 
+    }
+
+    private fun setNavBottomBarListeners() {
+        bottom_toolbar.setOnNavigationItemSelectedListener {
+            when (it.itemId) {
+                R.id.nav_completed -> {
+                    vp_lists.currentItem = vp_lists.currentItem - 1
+                    return@setOnNavigationItemSelectedListener true
+                }
+                R.id.nav_authored -> {
+                    vp_lists.currentItem = vp_lists.currentItem + 1
+                    return@setOnNavigationItemSelectedListener true
+                }
+                else -> super.onOptionsItemSelected(it)
+            }
+        }
+
+        vp_lists.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                bottom_toolbar.menu.getItem(position).isChecked = true
+            }
+        })
     }
 
 }
