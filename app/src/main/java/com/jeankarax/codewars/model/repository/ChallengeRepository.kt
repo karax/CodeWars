@@ -49,8 +49,8 @@ constructor(
             }))
     }
 
-    override fun getCompletedChallenges(userName: String, page: Int, isFirstCall: Boolean) {
-        disposable.add(challengeAPI.getCompletedChallenges(userName, page)
+    override fun getCompletedChallenges(userName: String, page: Long, isFirstCall: Boolean) {
+        disposable.add(challengeAPI.getCompletedChallenges(userName, page.toInt())
             .subscribeOn(Schedulers.newThread())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeWith(object : DisposableSingleObserver<ChallengesListResponse>(){
@@ -59,7 +59,8 @@ constructor(
                         auxAllChallengesList.add(t)
                         getAuthoredChallenges(userName)
                     }else {
-                        completedChallenges.postValue(t)
+                        auxAllChallengesList[0] = t
+                        allChallenges.postValue(auxAllChallengesList)
                     }
                 }
 

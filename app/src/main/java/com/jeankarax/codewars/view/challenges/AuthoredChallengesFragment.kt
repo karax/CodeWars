@@ -12,11 +12,9 @@ import com.jeankarax.codewars.viewmodel.ChallengesListsViewModel
 import kotlinx.android.synthetic.main.fragment_authored_challenges_list.*
 
 class AuthoredChallengesFragment(
-    viewModel: ChallengesListsViewModel
+    private val viewModel: ChallengesListsViewModel
 ) : Fragment() {
 
-    private val mLoadedAuthoredList = viewModel.getLoadedAuthoredList()
-    private val mViewModel = viewModel
     private lateinit var challengeListAdapter: ChallengeListAdapter
 
     override fun onCreateView(
@@ -32,8 +30,7 @@ class AuthoredChallengesFragment(
     }
 
     private fun buildRecyclerView() {
-        val challengesList = mLoadedAuthoredList.data as MutableList
-        challengeListAdapter = ChallengeListAdapter(challengesList,
+        challengeListAdapter = ChallengeListAdapter(viewModel.getLoadedAuthoredList(), viewModel,
             parentFragment as ChallengesListsFragment
         )
         rv_authored_challenges_list.layoutManager = LinearLayoutManager(context)

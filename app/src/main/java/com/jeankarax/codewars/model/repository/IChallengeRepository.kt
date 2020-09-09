@@ -9,7 +9,7 @@ interface IChallengeRepository {
 
     fun getChallenge(id: String)
 
-    fun getCompletedChallenges(userName: String, page: Int, isFirstCall: Boolean)
+    fun getCompletedChallenges(userName: String, page: Long, isFirstCall: Boolean)
 
     fun getAuthoredChallenges(userName: String)
 

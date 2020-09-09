@@ -16,9 +16,14 @@ class ChallengesListsViewModel(application: Application): AndroidViewModel(appli
     val areListsOk by lazy { MutableLiveData<Boolean>() }
     val isLoading by lazy { MutableLiveData<Boolean>() }
     val challengeLiveData by lazy { MutableLiveData<ChallengeResponse>() }
+    val isNextPageLoadedLiveData by lazy{MutableLiveData<Boolean>()}
     val irError by lazy { MutableLiveData<Boolean>() }
-    private lateinit var auxCompletedChallengesList: ChallengesListResponse
-    private lateinit var auxAuthoredChallengeList: ChallengesListResponse
+    private lateinit var auxCompletedChallengesList: MutableList<ChallengeResponse>
+    private lateinit var auxAuthoredChallengeList: List<ChallengeResponse>
+    private var auxListTotalPages: Long = 0
+    private var auxNextPage: Long = 1
+    private var auxUserName: String =""
+    var completedListWithLoading: MutableList<ChallengeResponse> = mutableListOf()
 
     @Inject
     lateinit var challengeRepository: IChallengeRepository
@@ -26,13 +31,32 @@ class ChallengesListsViewModel(application: Application): AndroidViewModel(appli
     init {
         DaggerChallengeRepositoryComponent.create().injectInChallengeListsViewModel(this)
         challengeRepository.setApplicationContext(getApplication())
+        completedListWithLoading = mutableListOf()
     }
 
     private val mapListsObserver = Observer<List<ChallengesListResponse>>{
-        auxCompletedChallengesList = it[0]
-        auxAuthoredChallengeList = it[1]
-        areListsOk.value = true
+        val placeHolderChallenge = ChallengeResponse("placeholder")
+        auxCompletedChallengesList = completedListWithLoading
+        auxAuthoredChallengeList = it[1].data!!
+        if(auxNextPage == 1.toLong()){
+            completedListWithLoading.clear()
+            completedListWithLoading.addAll(it[0].data as MutableList<ChallengeResponse>)
+            completedListWithLoading.add(placeHolderChallenge)
+            areListsOk.value = true
+        }
+        else{
+            completedListWithLoading.removeAt(completedListWithLoading.size-1)
+            completedListWithLoading.addAll(it[0].data as MutableList<ChallengeResponse>)
+            if(auxNextPage <= auxListTotalPages){
+                completedListWithLoading.add(placeHolderChallenge)
+            }else{
+                val placeHolderLastChallenge = ChallengeResponse("lastItem")
+                completedListWithLoading.add(placeHolderLastChallenge)
+            }
+            isNextPageLoadedLiveData.value = true
+        }
         isLoading.value = false
+        auxListTotalPages = it[0].totalPages!!
     }
 
     private val mapChallengeObserver = Observer<ChallengeResponse>{
@@ -41,13 +65,11 @@ class ChallengesListsViewModel(application: Application): AndroidViewModel(appli
     }
 
     fun getLists(userName: String){
+        auxUserName = userName
         isLoading.value = true
         challengeRepository.getCompletedChallenges(userName, 0, true)
         mapLists()
-    }
-
-    private fun mapLists() {
-        return challengeRepository.getAllChallengesLiveData().observeForever(mapListsObserver)
+        auxNextPage = 1
     }
 
     fun getChallenge(challengeId: String){
@@ -56,11 +78,21 @@ class ChallengesListsViewModel(application: Application): AndroidViewModel(appli
         mapChallenge()
     }
 
+    fun getNextPage() {
+        challengeRepository.getCompletedChallenges(auxUserName, auxNextPage, false)
+        auxNextPage++
+    }
+
+    private fun mapLists() {
+        return challengeRepository.getAllChallengesLiveData().observeForever(mapListsObserver)
+    }
+
     private fun mapChallenge() {
         return challengeRepository.getChallengeLiveData().observeForever(mapChallengeObserver)
     }
 
-    fun getLoadedCompletedList() = auxCompletedChallengesList
+    fun getLoadedCompletedList()= auxCompletedChallengesList
+
 
     fun getLoadedAuthoredList() = auxAuthoredChallengeList
 
