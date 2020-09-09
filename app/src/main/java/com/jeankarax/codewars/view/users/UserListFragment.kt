@@ -7,6 +7,7 @@ import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
@@ -58,8 +59,14 @@ class UserListFragment : Fragment() {
         ib_search.setOnClickListener {
             viewModel.getUser(et_search_user_name.text.toString())
             viewModel.userLiveData.observeOnce(viewLifecycleOwner, Observer {  user ->
-                val action = UserListFragmentDirections.actionGoToChallenges(user.username)
-                view?.let { parentFragment?.view?.let { parentFragment -> Navigation.findNavController(parentFragment).navigate(action) } }  })
+                val action = UserListFragmentDirections.actionGoToChallenges(et_search_user_name.text.toString())
+                view?.let { parentFragment?.view?.let { parentFragment ->
+                    Navigation.findNavController(parentFragment).navigate(action) } }  })
+            viewModel.errorLiveData.observeOnce(viewLifecycleOwner, Observer { isErrorReturned ->
+                run {
+                    Toast.makeText(this.context, "User not found", Toast.LENGTH_LONG).show()
+                }
+            })
         }
 
         mt_toolbar.setOnMenuItemClickListener { itemClicked ->
@@ -91,12 +98,6 @@ class UserListFragment : Fragment() {
                     rv_users_list.visibility = VISIBLE
                     progressBar.visibility = GONE
                 }
-        })
-
-        viewModel.errorLiveData.observeOnce(viewLifecycleOwner, Observer { isErrorReturned ->
-            run {
-                //TODO implement error
-            }
         })
     }
 
