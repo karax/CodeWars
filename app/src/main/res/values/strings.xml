@@ -17,4 +17,5 @@
     <string name="label_challenge_tags">tags: %s</string>
     <string name="text_challenges_not_found">Challenges not found</string>
     <string name="text_no_more_challenges">No more challenges</string>
+    <string name="tv_error_challenge_not_found">Challenge not found</string>
 </resources>

@@ -11,8 +11,10 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.jeankarax.codewars.R
 import com.jeankarax.codewars.model.response.ChallengeResponse
+import com.jeankarax.codewars.view.Constants
 import com.jeankarax.codewars.viewmodel.ChallengesListsViewModel
 import kotlinx.android.synthetic.main.fragment_challenge.*
+import kotlinx.android.synthetic.main.fragment_challenges.*
 
 class ChallengeFragment : Fragment() {
 
@@ -37,6 +39,14 @@ class ChallengeFragment : Fragment() {
         arguments?.let{
             viewModel.getChallenge(ChallengeFragmentArgs.fromBundle(it).challengeId)
         }
+
+        viewModel.isError.observe(viewLifecycleOwner, Observer {
+            if(it == Constants().PAGE_NOT_FOUND_ERROR){
+                sv_challenge_details.visibility = View.GONE
+                tv_error_challenge_not_found.visibility = VISIBLE
+                bottom_toolbar.visibility = View.GONE
+            }
+        })
 
     }
 

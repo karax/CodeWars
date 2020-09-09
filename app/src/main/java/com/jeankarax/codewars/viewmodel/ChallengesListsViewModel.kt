@@ -76,6 +76,7 @@ class ChallengesListsViewModel(application: Application): AndroidViewModel(appli
         isLoading.value = true
         challengeRepository.getCompletedChallenges(userName, 0, true)
         mapLists()
+        mapError()
         auxNextPage = 1
     }
 
@@ -83,6 +84,7 @@ class ChallengesListsViewModel(application: Application): AndroidViewModel(appli
         isLoading.value = true
         challengeRepository.getChallenge(challengeId)
         mapChallenge()
+        mapError()
     }
 
     fun getNextPage() {
