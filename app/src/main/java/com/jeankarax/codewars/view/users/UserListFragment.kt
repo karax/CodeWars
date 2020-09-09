@@ -63,9 +63,7 @@ class UserListFragment : Fragment() {
                 view?.let { parentFragment?.view?.let { parentFragment ->
                     Navigation.findNavController(parentFragment).navigate(action) } }  })
             viewModel.errorLiveData.observeOnce(viewLifecycleOwner, Observer { isErrorReturned ->
-                run {
-                    Toast.makeText(this.context, "User not found", Toast.LENGTH_LONG).show()
-                }
+                Toast.makeText(this.context, "User not found", Toast.LENGTH_LONG).show()
             })
         }
 

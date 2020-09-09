@@ -15,4 +15,6 @@
     <string name="label_challenge_approve_by">approved by: %s</string>
     <string name="label_challenge_languages">languages: %s</string>
     <string name="label_challenge_tags">tags: %s</string>
+    <string name="text_challenges_not_found">Challenges not found</string>
+    <string name="text_no_more_challenges">No more challenges</string>
 </resources>

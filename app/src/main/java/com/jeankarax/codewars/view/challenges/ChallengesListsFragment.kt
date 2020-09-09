@@ -7,12 +7,12 @@ import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
-import androidx.fragment.app.FragmentTransaction
+import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import androidx.navigation.Navigation
 import androidx.viewpager2.widget.ViewPager2
 import com.jeankarax.codewars.R
+import com.jeankarax.codewars.view.Constants
 import com.jeankarax.codewars.viewmodel.ChallengesListsViewModel
 import kotlinx.android.synthetic.main.fragment_challenges.*
 
@@ -56,6 +56,14 @@ class ChallengesListsFragment : Fragment() {
             }else{
                 vp_lists.visibility = VISIBLE
                 pb_challenges_call.visibility = GONE
+            }
+        })
+
+        viewModel.isError.observe(viewLifecycleOwner, Observer {
+            if(it == Constants().PAGE_NOT_FOUND_ERROR){
+                vp_lists.visibility = GONE
+                tv_error_challenges_not_found.visibility = VISIBLE
+                bottom_toolbar.visibility = GONE
             }
         })
 

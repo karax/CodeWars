@@ -8,6 +8,7 @@ import com.jeankarax.codewars.model.di.DaggerChallengeRepositoryComponent
 import com.jeankarax.codewars.model.repository.IChallengeRepository
 import com.jeankarax.codewars.model.response.ChallengeResponse
 import com.jeankarax.codewars.model.response.ChallengesListResponse
+import retrofit2.HttpException
 import javax.inject.Inject
 
 class ChallengesListsViewModel(application: Application): AndroidViewModel(application) {
@@ -17,7 +18,7 @@ class ChallengesListsViewModel(application: Application): AndroidViewModel(appli
     val isLoading by lazy { MutableLiveData<Boolean>() }
     val challengeLiveData by lazy { MutableLiveData<ChallengeResponse>() }
     val isNextPageLoadedLiveData by lazy{MutableLiveData<Boolean>()}
-    val irError by lazy { MutableLiveData<Boolean>() }
+    val isError by lazy { MutableLiveData<String>() }
     private lateinit var auxCompletedChallengesList: MutableList<ChallengeResponse>
     private lateinit var auxAuthoredChallengeList: List<ChallengeResponse>
     private var auxListTotalPages: Long = 0
@@ -64,6 +65,12 @@ class ChallengesListsViewModel(application: Application): AndroidViewModel(appli
         isLoading.value = false
     }
 
+    private val mapErrorObserver = Observer<Throwable> {
+        if(it is HttpException){
+            isError.value = it.code().toString()
+        }
+    }
+
     fun getLists(userName: String){
         auxUserName = userName
         isLoading.value = true
@@ -89,6 +96,10 @@ class ChallengesListsViewModel(application: Application): AndroidViewModel(appli
 
     private fun mapChallenge() {
         return challengeRepository.getChallengeLiveData().observeForever(mapChallengeObserver)
+    }
+
+    private fun mapError(){
+        return challengeRepository.getErrorLiveData().observeForever(mapErrorObserver)
     }
 
     fun getLoadedCompletedList()= auxCompletedChallengesList
