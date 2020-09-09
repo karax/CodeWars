@@ -43,7 +43,7 @@ class UserListFragment : Fragment() {
     }
 
     private fun buildRecyclerView() {
-        userListAdapter = UserListAdapter(arrayListOf())
+        userListAdapter = UserListAdapter(arrayListOf(), this)
         rv_users_list.layoutManager = LinearLayoutManager(context)
         rv_users_list.adapter = userListAdapter
         rv_users_list.addItemDecoration(
@@ -59,7 +59,7 @@ class UserListFragment : Fragment() {
             viewModel.getUser(et_search_user_name.text.toString())
             viewModel.userLiveData.observeOnce(viewLifecycleOwner, Observer {  user ->
                 val action = UserListFragmentDirections.actionGoToChallenges(user.username)
-                view?.let { Navigation.findNavController(it).navigate(action) }  })
+                view?.let { parentFragment?.view?.let { parentFragment -> Navigation.findNavController(parentFragment).navigate(action) } }  })
         }
 
         mt_toolbar.setOnMenuItemClickListener { itemClicked ->
