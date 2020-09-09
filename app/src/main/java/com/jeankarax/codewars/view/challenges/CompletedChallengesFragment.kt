@@ -8,13 +8,11 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.jeankarax.codewars.R
+import com.jeankarax.codewars.model.response.ChallengeResponse
 import com.jeankarax.codewars.viewmodel.ChallengesListsViewModel
 import kotlinx.android.synthetic.main.fragment_completed_challenges_list.*
 
-class CompletedChallengesFragment(viewModel: ChallengesListsViewModel) : Fragment() {
-
-    private val mViewModel = viewModel
-    private val mLoadedCompletedList = mViewModel.getLoadedCompletedList()
+class CompletedChallengesFragment(private val viewModel: ChallengesListsViewModel) : Fragment() {
 
     private lateinit var challengeListAdapter: ChallengeListAdapter
 
@@ -32,8 +30,8 @@ class CompletedChallengesFragment(viewModel: ChallengesListsViewModel) : Fragmen
     }
 
     private fun buildRecyclerView() {
-        val challengesList = mLoadedCompletedList.data as MutableList
-        challengeListAdapter = ChallengeListAdapter(challengesList,
+        challengeListAdapter = ChallengeListAdapter(viewModel.getLoadedCompletedList(),
+            viewModel,
             parentFragment as ChallengesListsFragment)
         rv_completed_challenges_list.layoutManager = LinearLayoutManager(context)
         rv_completed_challenges_list.adapter = challengeListAdapter
