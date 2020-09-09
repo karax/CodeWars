@@ -19,11 +19,20 @@
         android:name="com.jeankarax.codewars.view.challenges.ChallengesListsFragment"
         android:label="fragment_challenges"
         tools:layout="@layout/fragment_challenges" >
-        <action
-            android:id="@+id/actionBackToUsers"
-            app:destination="@id/usersFragment" />
         <argument
             android:name="userName"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_challengesFragment_to_challengeFragment"
+            app:destination="@id/challengeFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/challengeFragment"
+        android:name="com.jeankarax.codewars.view.challenges.ChallengeFragment"
+        android:label="fragment_challenge"
+        tools:layout="@layout/fragment_challenge" >
+        <argument
+            android:name="challengeId"
             app:argType="string" />
     </fragment>
 </navigation>

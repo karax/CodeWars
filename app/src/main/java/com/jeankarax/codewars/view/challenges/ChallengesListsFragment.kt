@@ -7,8 +7,10 @@ import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
+import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.navigation.Navigation
 import androidx.viewpager2.widget.ViewPager2
 import com.jeankarax.codewars.R
 import com.jeankarax.codewars.viewmodel.ChallengesListsViewModel
@@ -38,11 +40,12 @@ class ChallengesListsFragment : Fragment() {
         viewModel.getLists(userName)
         mt_challenges_toolbar.title = getString(R.string.title_challenges_toolbar, userName)
         setNavBottomBarListeners()
+
     }
 
     private fun setObservers() {
         viewModel.areListsOk.observe(viewLifecycleOwner, Observer {
-            challengesPageAdapter = ChallengesPageAdapter(this.parentFragmentManager, lifecycle, viewModel)
+            challengesPageAdapter = ChallengesPageAdapter(this.childFragmentManager, lifecycle, viewModel)
             vp_lists.adapter = challengesPageAdapter
         })
 

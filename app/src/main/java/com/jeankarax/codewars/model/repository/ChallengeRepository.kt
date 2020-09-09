@@ -33,8 +33,8 @@ constructor(
     private val error = MediatorLiveData<Throwable>()
     private var auxAllChallengesList = mutableListOf<ChallengesListResponse>()
 
-    override fun getChallenge(id: Int) {
-        disposable.add(challengeAPI.getChallenge(id.toString())
+    override fun getChallenge(id: String) {
+        disposable.add(challengeAPI.getChallenge(id)
             .subscribeOn(Schedulers.newThread())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeWith(object: DisposableSingleObserver<ChallengeResponse>(){

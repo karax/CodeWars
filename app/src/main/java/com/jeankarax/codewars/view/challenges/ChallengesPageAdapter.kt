@@ -14,10 +14,10 @@ class ChallengesPageAdapter(fragmentManager: FragmentManager, lifecycle: Lifecyc
     override fun createFragment(position: Int): Fragment {
         when(position){
             0 -> return CompletedChallengesFragment(
-                mViewModel.getLoadedCompletedList()
+                mViewModel
             )
             1 -> return AuthoredChallengesFragment(
-                mViewModel.getLoadedAuthoredList()
+                mViewModel
             )
         }
         return ErrorFragment()

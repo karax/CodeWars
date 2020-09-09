@@ -8,13 +8,15 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.jeankarax.codewars.R
-import com.jeankarax.codewars.model.response.ChallengesListResponse
+import com.jeankarax.codewars.viewmodel.ChallengesListsViewModel
 import kotlinx.android.synthetic.main.fragment_authored_challenges_list.*
 
-class AuthoredChallengesFragment(loadedAuthoredList: ChallengesListResponse) : Fragment() {
+class AuthoredChallengesFragment(
+    viewModel: ChallengesListsViewModel
+) : Fragment() {
 
-    private val mLoadedAuthoredList = loadedAuthoredList
-
+    private val mLoadedAuthoredList = viewModel.getLoadedAuthoredList()
+    private val mViewModel = viewModel
     private lateinit var challengeListAdapter: ChallengeListAdapter
 
     override fun onCreateView(
@@ -31,7 +33,9 @@ class AuthoredChallengesFragment(loadedAuthoredList: ChallengesListResponse) : F
 
     private fun buildRecyclerView() {
         val challengesList = mLoadedAuthoredList.data as MutableList
-        challengeListAdapter = ChallengeListAdapter(challengesList)
+        challengeListAdapter = ChallengeListAdapter(challengesList,
+            parentFragment as ChallengesListsFragment
+        )
         rv_authored_challenges_list.layoutManager = LinearLayoutManager(context)
         rv_authored_challenges_list.adapter = challengeListAdapter
         rv_authored_challenges_list.addItemDecoration(

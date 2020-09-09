@@ -7,7 +7,7 @@ import com.jeankarax.codewars.model.response.ChallengesListResponse
 
 interface IChallengeRepository {
 
-    fun getChallenge(id: Int)
+    fun getChallenge(id: String)
 
     fun getCompletedChallenges(userName: String, page: Int, isFirstCall: Boolean)
 
