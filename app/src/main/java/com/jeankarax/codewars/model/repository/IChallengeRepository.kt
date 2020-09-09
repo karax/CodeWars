@@ -19,7 +19,7 @@ interface IChallengeRepository {
 
     fun getAllChallengesLiveData(): LiveData<MutableList<ChallengesListResponse>>
 
-    fun getErrorObservable(): LiveData<Throwable>
+    fun getErrorLiveData(): LiveData<Throwable>
 
     fun clearDisposable()
 

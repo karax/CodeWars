@@ -6,13 +6,15 @@ import com.jeankarax.codewars.model.di.DaggerUserComponent
 import com.jeankarax.codewars.model.di.DaggerUserRepositoryComponent
 import com.jeankarax.codewars.model.response.UserResponse
 import com.jeankarax.codewars.model.repository.IUserRepository
+import com.jeankarax.codewars.view.Constants
+import retrofit2.HttpException
 import javax.inject.Inject
 
 class UserListViewModel(application: Application) : AndroidViewModel(application) {
 
     val userLiveData by lazy { MutableLiveData<UserResponse>() }
     val userListLiveData by lazy { MutableLiveData<List<UserResponse>>() }
-    val errorLiveData by lazy { MutableLiveData<Boolean>() }
+    val errorLiveData by lazy { MutableLiveData<String>() }
     val loading by lazy { MutableLiveData<Boolean>() }
     private var unsortedList = ArrayList<UserResponse>()
 
@@ -34,7 +36,9 @@ class UserListViewModel(application: Application) : AndroidViewModel(application
 
     private val mapErrorObserver = Observer<Throwable> {
         loading.value = false
-        errorLiveData.value = true
+        if(it is HttpException){
+            errorLiveData.value = it.code().toString()
+        }
     }
 
     private val mapUserListObserver = Observer<ArrayList<UserResponse>> {
@@ -47,7 +51,6 @@ class UserListViewModel(application: Application) : AndroidViewModel(application
         loading.value = true
         userRepository.getUser(userName)
         mapUser()
-        mapError()
     }
 
     fun getUsersList(){
