@@ -1,4 +1,4 @@
-package com.jeankarax.codewars.model.user
+package com.jeankarax.codewars.model.repository
 
 import android.app.Application
 import androidx.lifecycle.LiveData
@@ -29,10 +29,10 @@ constructor(
     lateinit var mApplication: Application
 
     private val disposable = CompositeDisposable()
-    val user = MediatorLiveData<UserResponse>()
-    val error = MediatorLiveData<Throwable>()
-    val userList = MediatorLiveData<ArrayList<UserResponse>>()
-    val isEmptyList = MediatorLiveData<Boolean>()
+    private val user = MediatorLiveData<UserResponse>()
+    private val error = MediatorLiveData<Throwable>()
+    private val userList = MediatorLiveData<ArrayList<UserResponse>>()
+    private val isEmptyList = MediatorLiveData<Boolean>()
 
     override fun getUser(userName: String) {
         val userFromDataBase: UserResponse?
@@ -61,7 +61,7 @@ constructor(
     override fun getUsersList(limit: Int) {
         var userListFromDataBase: ArrayList<UserResponse>
         userListFromDataBase = getLastUsers(limit) as ArrayList<UserResponse>
-        if(null != user){
+        if(null != userListFromDataBase){
             userList.postValue(userListFromDataBase)
         }else{
             isEmptyList.postValue(true)

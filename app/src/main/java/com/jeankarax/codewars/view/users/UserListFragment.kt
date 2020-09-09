@@ -1,4 +1,4 @@
-package com.jeankarax.codewars.view
+package com.jeankarax.codewars.view.users
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -8,8 +8,11 @@ import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.navigation.Navigation
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.jeankarax.codewars.R
@@ -20,7 +23,7 @@ class UserListFragment : Fragment() {
 
     private var isOrderedByRank: Boolean = false
     private lateinit var viewModel: UserListViewModel
-    private val userListAdapter = UserListAdapter(arrayListOf())
+    private lateinit var userListAdapter: UserListAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -40,6 +43,7 @@ class UserListFragment : Fragment() {
     }
 
     private fun buildRecyclerView() {
+        userListAdapter = UserListAdapter(arrayListOf())
         rv_users_list.layoutManager = LinearLayoutManager(context)
         rv_users_list.adapter = userListAdapter
         rv_users_list.addItemDecoration(
@@ -53,6 +57,9 @@ class UserListFragment : Fragment() {
     private fun setOnClickListeners() {
         ib_search.setOnClickListener {
             viewModel.getUser(et_search_user_name.text.toString())
+            viewModel.userLiveData.observeOnce(viewLifecycleOwner, Observer {  user ->
+                val action = UserListFragmentDirections.actionGoToChallenges(user.username)
+                view?.let { Navigation.findNavController(it).navigate(action) }  })
         }
 
         mt_toolbar.setOnMenuItemClickListener { itemClicked ->
@@ -67,25 +74,16 @@ class UserListFragment : Fragment() {
     }
 
     private fun setObservers() {
-        viewModel.userLiveData.observe(viewLifecycleOwner, Observer { user ->
-            run {
-                val teste = user.name
-                print(teste)
-            }
-        })
 
         viewModel.userListLiveData.observe(viewLifecycleOwner, Observer {
-            run {
                 rv_users_list.apply {
                     it?.let {
                         userListAdapter.updateUserList(it)
                     }
                 }
-            }
         })
 
         viewModel.loading.observe(viewLifecycleOwner, Observer { isLoading ->
-            run {
                 if (isLoading) {
                     rv_users_list.visibility = GONE
                     progressBar.visibility = VISIBLE
@@ -93,10 +91,9 @@ class UserListFragment : Fragment() {
                     rv_users_list.visibility = VISIBLE
                     progressBar.visibility = GONE
                 }
-            }
         })
 
-        viewModel.errorLiveData.observe(viewLifecycleOwner, Observer { isErrorReturned ->
+        viewModel.errorLiveData.observeOnce(viewLifecycleOwner, Observer { isErrorReturned ->
             run {
                 //TODO implement error
             }
@@ -126,4 +123,12 @@ class UserListFragment : Fragment() {
             .show()
     }
 
+    fun <T> LiveData<T>.observeOnce(lifecycleOwner: LifecycleOwner, observer: Observer<T>){
+        observe(lifecycleOwner, object: Observer<T>{
+            override fun onChanged(t: T?) {
+                observer.onChanged(t)
+                removeObserver(this)
+            }
+        })
+    }
 }
