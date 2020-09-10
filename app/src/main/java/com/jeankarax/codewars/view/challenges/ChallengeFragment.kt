@@ -7,6 +7,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.View.VISIBLE
 import android.view.ViewGroup
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.jeankarax.codewars.R
@@ -41,7 +43,7 @@ class ChallengeFragment : Fragment() {
             viewModel.getChallenge(ChallengeFragmentArgs.fromBundle(it).challengeId)
         }
 
-        viewModel.isError.observe(viewLifecycleOwner, Observer {
+        viewModel.isError.observeOnce(viewLifecycleOwner, Observer {
             if(it == Constants.PAGE_NOT_FOUND_ERROR){
                 sv_challenge_details.visibility = View.GONE
                 tv_error_challenge_not_found.visibility = VISIBLE
@@ -77,4 +79,12 @@ class ChallengeFragment : Fragment() {
         EspressoIdlingResource.decrement()
     }
 
+    private fun <T> LiveData<T>.observeOnce(lifecycleOwner: LifecycleOwner, observer: Observer<T>){
+        observe(lifecycleOwner, object: Observer<T>{
+            override fun onChanged(t: T?) {
+                observer.onChanged(t)
+                removeObserver(this)
+            }
+        })
+    }
 }
