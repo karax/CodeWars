@@ -132,7 +132,7 @@ class UserListFragment : Fragment() {
                 EspressoIdlingResource.decrement()
             })
             viewModel.errorLiveData.observeOnce(viewLifecycleOwner, Observer {
-                Toast.makeText(this.context, "User not found", Toast.LENGTH_LONG).show()
+                Toast.makeText(this.context, it, Toast.LENGTH_LONG).show()
             })
         }
     }
