@@ -17,6 +17,7 @@ import androidx.navigation.Navigation
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.jeankarax.codewars.R
+import com.jeankarax.codewars.utils.EspressoIdlingResource
 import com.jeankarax.codewars.viewmodel.UserListViewModel
 import kotlinx.android.synthetic.main.fragment_users.*
 
@@ -57,16 +58,8 @@ class UserListFragment : Fragment() {
 
     private fun setOnClickListeners() {
         ib_search.setOnClickListener {
-            viewModel.getUser(et_search_user_name.text.toString())
-            viewModel.userLiveData.observeOnce(viewLifecycleOwner, Observer {
-                val action = UserListFragmentDirections.actionGoToChallenges(et_search_user_name.text.toString())
-                view?.let { parentFragment?.view?.let { parentFragment ->
-                    Navigation.findNavController(parentFragment).navigate(action) } }  })
-            viewModel.errorLiveData.observeOnce(viewLifecycleOwner, Observer {
-                Toast.makeText(this.context, "User not found", Toast.LENGTH_LONG).show()
-            })
+                getUser()
         }
-
         mt_toolbar.setOnMenuItemClickListener { itemClicked ->
             return@setOnMenuItemClickListener when (itemClicked.itemId) {
                 R.id.menu_sort_user_list -> {
@@ -118,6 +111,30 @@ class UserListFragment : Fragment() {
             }
             .create()
             .show()
+    }
+
+    private fun getUser() {
+        EspressoIdlingResource.increment()
+        if (et_search_user_name.text.isNullOrBlank()) {
+            tv_empty_user_error.visibility = VISIBLE
+
+        } else {
+            tv_empty_user_error.visibility = GONE
+            viewModel.getUser(et_search_user_name.text.toString())
+            viewModel.userLiveData.observeOnce(viewLifecycleOwner, Observer {
+                val action =
+                    UserListFragmentDirections.actionGoToChallenges(et_search_user_name.text.toString())
+                view?.let {
+                    parentFragment?.view?.let { parentFragment ->
+                        Navigation.findNavController(parentFragment).navigate(action)
+                    }
+                }
+                EspressoIdlingResource.decrement()
+            })
+            viewModel.errorLiveData.observeOnce(viewLifecycleOwner, Observer {
+                Toast.makeText(this.context, it, Toast.LENGTH_LONG).show()
+            })
+        }
     }
 
     private fun <T> LiveData<T>.observeOnce(lifecycleOwner: LifecycleOwner, observer: Observer<T>){

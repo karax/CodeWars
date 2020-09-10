@@ -23,7 +23,6 @@ constructor(
     private val challengeAPI: ChallengeAPI
 ):IChallengeRepository, CoroutineScope {
 
-    @Inject
     lateinit var mApplication: Application
 
     private val disposable = CompositeDisposable()
