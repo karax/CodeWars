@@ -3,11 +3,9 @@ package com.jeankarax.codewars.viewmodel
 import android.app.Application
 import androidx.lifecycle.*
 import com.jeankarax.codewars.R
-import com.jeankarax.codewars.model.di.DaggerUserComponent
 import com.jeankarax.codewars.model.di.DaggerUserRepositoryComponent
 import com.jeankarax.codewars.model.response.UserResponse
 import com.jeankarax.codewars.model.repository.IUserRepository
-import com.jeankarax.codewars.view.Constants
 import retrofit2.HttpException
 import javax.inject.Inject
 
@@ -23,10 +21,7 @@ class UserListViewModel(application: Application) : AndroidViewModel(application
     lateinit var userRepository: IUserRepository
 
     init{
-        DaggerUserComponent.create().inject(this)
-        DaggerUserRepositoryComponent.builder()
-            .build()
-            .inject(application)
+        DaggerUserRepositoryComponent.create().inject(this)
         userRepository.setApplicationContext(getApplication())
     }
 
@@ -86,6 +81,7 @@ class UserListViewModel(application: Application) : AndroidViewModel(application
         super.onCleared()
         userRepository.getUserObservable().removeObserver(mapUserObserver)
         userRepository.getErrorObservable().removeObserver(mapErrorObserver)
+        userRepository.getUsersListObservable().removeObserver(mapUserListObserver)
         userRepository.clearDisposable()
     }
 

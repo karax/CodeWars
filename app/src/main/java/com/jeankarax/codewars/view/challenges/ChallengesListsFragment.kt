@@ -12,6 +12,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.viewpager2.widget.ViewPager2
 import com.jeankarax.codewars.R
+import com.jeankarax.codewars.utils.EspressoIdlingResource
 import com.jeankarax.codewars.view.Constants
 import com.jeankarax.codewars.viewmodel.ChallengesListsViewModel
 import kotlinx.android.synthetic.main.fragment_challenges.*
@@ -26,6 +27,7 @@ class ChallengesListsFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        EspressoIdlingResource.increment()
         return inflater.inflate(R.layout.fragment_challenges, container, false)
     }
 
