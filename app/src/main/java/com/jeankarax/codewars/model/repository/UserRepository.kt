@@ -1,6 +1,9 @@
 package com.jeankarax.codewars.model.repository
 
 import android.app.Application
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import com.jeankarax.codewars.model.api.UserAPI
@@ -28,8 +31,10 @@ constructor(
     private val isEmptyList = MediatorLiveData<Boolean>()
 
     override fun getUser(userName: String) {
-        val userFromDataBase: UserResponse?
-        userFromDataBase = getUserFromDataBase(userName)
+        var userFromDataBase: UserResponse? = null
+        if (!isOnline(mApplication)){
+            userFromDataBase = getUserFromDataBase(userName)
+        }
         if(null != userFromDataBase){
             saveUserToDataBase(userFromDataBase)
             user.postValue(userFromDataBase)
@@ -91,6 +96,23 @@ constructor(
 
     override fun setApplicationContext(application: Application) {
         mApplication = application
+    }
+
+    fun isOnline(context: Context):Boolean{
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        if (connectivityManager != null){
+            val capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+            capabilities?.let {
+                if (it.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)){
+                    return true
+                }else if(it.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)){
+                    return true
+                }else if(it.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)){
+                    return true
+                }
+            }
+        }
+        return false
     }
 
 }
