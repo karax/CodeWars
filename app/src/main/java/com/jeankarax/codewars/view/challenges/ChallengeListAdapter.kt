@@ -10,6 +10,7 @@ import androidx.navigation.Navigation
 import androidx.recyclerview.widget.RecyclerView
 import com.jeankarax.codewars.R
 import com.jeankarax.codewars.model.response.ChallengeResponse
+import com.jeankarax.codewars.utils.EspressoIdlingResource
 import com.jeankarax.codewars.viewmodel.ChallengesListsViewModel
 import kotlinx.android.synthetic.main.item_challenge_list.view.*
 import kotlinx.android.synthetic.main.item_loading_challenge.view.*
@@ -50,11 +51,13 @@ class ChallengeListAdapter(
         if(holder is ChallengeViewHolder){
             populateItems(holder, position)
         }else if(holder is LoadMoreViewHolder){
+            EspressoIdlingResource.increment()
             viewModel.getNextPage()
             holder.view.pb_load_more.visibility = VISIBLE
             viewModel.isNextPageLoadedLiveData.observe(mParentFragment.viewLifecycleOwner, Observer {
                 Handler().postDelayed({
                     notifyDataSetChanged()
+                    EspressoIdlingResource.decrement()
                 }, 3000)
             })
         }
@@ -76,6 +79,7 @@ class ChallengeListAdapter(
         }
 
         holder.view.setOnClickListener {
+            EspressoIdlingResource.increment()
             val action =
                 ChallengesListsFragmentDirections.actionChallengesFragmentToChallengeFragment(
                     challengeList[position].id
