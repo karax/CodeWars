@@ -7,11 +7,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.View.VISIBLE
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.jeankarax.codewars.R
 import com.jeankarax.codewars.model.response.ChallengeResponse
+import com.jeankarax.codewars.utils.EspressoIdlingResource
 import com.jeankarax.codewars.view.Constants
+import com.jeankarax.codewars.viewmodel.ChallengeViewModel
 import com.jeankarax.codewars.viewmodel.ChallengesListsViewModel
 import kotlinx.android.synthetic.main.fragment_challenge.*
 import kotlinx.android.synthetic.main.fragment_challenges.*
@@ -19,7 +24,7 @@ import kotlinx.android.synthetic.main.fragment_challenges.*
 class ChallengeFragment : Fragment() {
 
     lateinit var challenge: ChallengeResponse
-    private lateinit var viewModel: ChallengesListsViewModel
+    private lateinit var viewModel: ChallengeViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -31,7 +36,7 @@ class ChallengeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel = ViewModelProviders.of(this).get(ChallengesListsViewModel::class.java)
+        viewModel = ViewModelProviders.of(this).get(ChallengeViewModel::class.java)
         viewModel.challengeLiveData.observe(viewLifecycleOwner, Observer {
             challenge = it
             bindComponents()
@@ -41,11 +46,8 @@ class ChallengeFragment : Fragment() {
         }
 
         viewModel.isError.observe(viewLifecycleOwner, Observer {
-            if(it == Constants().PAGE_NOT_FOUND_ERROR){
-                sv_challenge_details.visibility = View.GONE
-                tv_error_challenge_not_found.visibility = VISIBLE
-                bottom_toolbar.visibility = View.GONE
-            }
+            sv_challenge_details.visibility = View.GONE
+            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
         })
 
     }
@@ -73,6 +75,15 @@ class ChallengeFragment : Fragment() {
             }
             tv_challenge_tags.text = getString(R.string.label_challenge_tags, tags)
         }
+        EspressoIdlingResource.decrement()
     }
 
+    private fun <T> LiveData<T>.observeOnce(lifecycleOwner: LifecycleOwner, observer: Observer<T>){
+        observe(lifecycleOwner, object: Observer<T>{
+            override fun onChanged(t: T?) {
+                observer.onChanged(t)
+                removeObserver(this)
+            }
+        })
+    }
 }
