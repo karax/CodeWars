@@ -56,15 +56,26 @@ class UserListFragment : Fragment() {
     }
 
     private fun setOnClickListeners() {
-        ib_search.setOnClickListener {
-            viewModel.getUser(et_search_user_name.text.toString())
-            viewModel.userLiveData.observeOnce(viewLifecycleOwner, Observer {
-                val action = UserListFragmentDirections.actionGoToChallenges(et_search_user_name.text.toString())
-                view?.let { parentFragment?.view?.let { parentFragment ->
-                    Navigation.findNavController(parentFragment).navigate(action) } }  })
-            viewModel.errorLiveData.observeOnce(viewLifecycleOwner, Observer {
-                Toast.makeText(this.context, "User not found", Toast.LENGTH_LONG).show()
-            })
+            ib_search.setOnClickListener {
+                if(et_search_user_name.text.isNullOrBlank()){
+                    tv_empty_user_error.visibility = VISIBLE
+
+                }else{
+                    tv_empty_user_error.visibility = GONE
+                    viewModel.getUser(et_search_user_name.text.toString())
+                    viewModel.userLiveData.observeOnce(viewLifecycleOwner, Observer {
+                        val action =
+                            UserListFragmentDirections.actionGoToChallenges(et_search_user_name.text.toString())
+                        view?.let {
+                            parentFragment?.view?.let { parentFragment ->
+                                Navigation.findNavController(parentFragment).navigate(action)
+                            }
+                        }
+                    })
+                    viewModel.errorLiveData.observeOnce(viewLifecycleOwner, Observer {
+                        Toast.makeText(this.context, "User not found", Toast.LENGTH_LONG).show()
+                    })
+            }
         }
 
         mt_toolbar.setOnMenuItemClickListener { itemClicked ->
