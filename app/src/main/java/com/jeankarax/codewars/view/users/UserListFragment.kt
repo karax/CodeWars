@@ -62,8 +62,8 @@ class UserListFragment : Fragment() {
                 val action = UserListFragmentDirections.actionGoToChallenges(et_search_user_name.text.toString())
                 view?.let { parentFragment?.view?.let { parentFragment ->
                     Navigation.findNavController(parentFragment).navigate(action) } }  })
-            viewModel.errorLiveData.observeOnce(viewLifecycleOwner, Observer { isErrorReturned ->
-                Toast.makeText(this.context, "User not found", Toast.LENGTH_LONG).show()
+            viewModel.errorLiveData.observeOnce(viewLifecycleOwner, Observer {
+                Toast.makeText(this.context, it, Toast.LENGTH_LONG).show()
             })
         }
 

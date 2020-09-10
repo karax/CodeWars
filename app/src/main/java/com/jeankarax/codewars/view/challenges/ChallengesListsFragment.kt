@@ -60,11 +60,9 @@ class ChallengesListsFragment : Fragment() {
         })
 
         viewModel.isError.observe(viewLifecycleOwner, Observer {
-            if(it == Constants().PAGE_NOT_FOUND_ERROR){
-                vp_lists.visibility = GONE
-                tv_error_challenges_not_found.visibility = VISIBLE
-                bottom_toolbar.visibility = GONE
-            }
+            Toast.makeText(this.context, it, Toast.LENGTH_LONG).show()
+            vp_lists.visibility = GONE
+            bottom_toolbar.visibility = GONE
         })
 
     }

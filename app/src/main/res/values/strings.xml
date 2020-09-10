@@ -18,4 +18,8 @@
     <string name="text_challenges_not_found">Challenges not found</string>
     <string name="text_no_more_challenges">No more challenges</string>
     <string name="tv_error_challenge_not_found">Challenge not found</string>
+    <string name="text_connection_error">Please check your connection</string>
+    <string name="text_error_challenges_not_found">No challenges were found</string>
+    <string name="text_error_user_not_found">User not found</string>
+    <string name="text_error_challenge_not_found">This challenge wasn\'t found</string>
 </resources>
