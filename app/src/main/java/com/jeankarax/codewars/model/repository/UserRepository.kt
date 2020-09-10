@@ -1,6 +1,9 @@
 package com.jeankarax.codewars.model.repository
 
 import android.app.Application
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import com.jeankarax.codewars.model.api.UserAPI
@@ -10,24 +13,17 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.observers.DisposableSingleObserver
 import io.reactivex.schedulers.Schedulers
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 import java.util.*
 import javax.inject.Inject
 import kotlin.collections.ArrayList
-import kotlin.coroutines.CoroutineContext
 
 class UserRepository
 @Inject
 constructor(
     private val userAPI: UserAPI
-): IUserRepository, CoroutineScope
+): IUserRepository
 {
-    @Inject
     lateinit var mApplication: Application
-
     private val disposable = CompositeDisposable()
     private val user = MediatorLiveData<UserResponse>()
     private val error = MediatorLiveData<Throwable>()
@@ -35,8 +31,10 @@ constructor(
     private val isEmptyList = MediatorLiveData<Boolean>()
 
     override fun getUser(userName: String) {
-        val userFromDataBase: UserResponse?
-        userFromDataBase = getUserFromDataBase(userName)
+        var userFromDataBase: UserResponse? = null
+        if (!isOnline(mApplication)){
+            userFromDataBase = getUserFromDataBase(userName)
+        }
         if(null != userFromDataBase){
             saveUserToDataBase(userFromDataBase)
             user.postValue(userFromDataBase)
@@ -59,8 +57,7 @@ constructor(
     }
 
     override fun getUsersList(limit: Int) {
-        var userListFromDataBase: ArrayList<UserResponse>
-        userListFromDataBase = getLastUsers(limit) as ArrayList<UserResponse>
+        var userListFromDataBase: ArrayList<UserResponse> = getLastUsers(limit) as ArrayList<UserResponse>
         if(null != userListFromDataBase){
             userList.postValue(userListFromDataBase)
         }else{
@@ -80,13 +77,9 @@ constructor(
         return error
     }
 
-
-
     private fun saveUserToDataBase(user: UserResponse){
-        launch {
-            user.creationDate = Date()
-            UserLocalDataBase(mApplication).userDAO().saveUser(user)
-        }
+        user.creationDate = Date()
+        UserLocalDataBase(mApplication).userDAO().saveUser(user)
     }
 
     private fun getUserFromDataBase(userName: String): UserResponse{
@@ -97,18 +90,29 @@ constructor(
         return UserLocalDataBase(mApplication).userDAO().getLastUsersList(limit)
     }
 
-    private val job = Job()
-
-    override val coroutineContext: CoroutineContext
-        get() = job + Dispatchers.Main
-
     override fun clearDisposable(){
         disposable.clear()
-        job.cancel()
     }
 
     override fun setApplicationContext(application: Application) {
         mApplication = application
+    }
+
+    fun isOnline(context: Context):Boolean{
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        if (connectivityManager != null){
+            val capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+            capabilities?.let {
+                if (it.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)){
+                    return true
+                }else if(it.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)){
+                    return true
+                }else if(it.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)){
+                    return true
+                }
+            }
+        }
+        return false
     }
 
 }

@@ -4,10 +4,13 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
+import com.jeankarax.codewars.R
 import com.jeankarax.codewars.model.di.DaggerChallengeRepositoryComponent
 import com.jeankarax.codewars.model.repository.IChallengeRepository
 import com.jeankarax.codewars.model.response.ChallengeResponse
 import com.jeankarax.codewars.model.response.ChallengesListResponse
+import retrofit2.HttpException
+import java.net.UnknownHostException
 import javax.inject.Inject
 
 class ChallengesListsViewModel(application: Application): AndroidViewModel(application) {
@@ -15,9 +18,8 @@ class ChallengesListsViewModel(application: Application): AndroidViewModel(appli
 
     val areListsOk by lazy { MutableLiveData<Boolean>() }
     val isLoading by lazy { MutableLiveData<Boolean>() }
-    val challengeLiveData by lazy { MutableLiveData<ChallengeResponse>() }
     val isNextPageLoadedLiveData by lazy{MutableLiveData<Boolean>()}
-    val irError by lazy { MutableLiveData<Boolean>() }
+    val isError by lazy { MutableLiveData<String>() }
     private lateinit var auxCompletedChallengesList: MutableList<ChallengeResponse>
     private lateinit var auxAuthoredChallengeList: List<ChallengeResponse>
     private var auxListTotalPages: Long = 0
@@ -59,9 +61,13 @@ class ChallengesListsViewModel(application: Application): AndroidViewModel(appli
         auxListTotalPages = it[0].totalPages!!
     }
 
-    private val mapChallengeObserver = Observer<ChallengeResponse>{
-        challengeLiveData.value = it
-        isLoading.value = false
+    private val mapErrorObserver = Observer<Throwable> {
+        if(it is HttpException){
+            isError.value = application.getString(R.string.text_error_challenges_not_found)
+        }else if (it is UnknownHostException){
+            isError.value = application.getString(R.string.text_connection_error)
+            isLoading.value = false
+        }
     }
 
     fun getLists(userName: String){
@@ -69,14 +75,10 @@ class ChallengesListsViewModel(application: Application): AndroidViewModel(appli
         isLoading.value = true
         challengeRepository.getCompletedChallenges(userName, 0, true)
         mapLists()
+        mapError()
         auxNextPage = 1
     }
 
-    fun getChallenge(challengeId: String){
-        isLoading.value = true
-        challengeRepository.getChallenge(challengeId)
-        mapChallenge()
-    }
 
     fun getNextPage() {
         challengeRepository.getCompletedChallenges(auxUserName, auxNextPage, false)
@@ -87,8 +89,8 @@ class ChallengesListsViewModel(application: Application): AndroidViewModel(appli
         return challengeRepository.getAllChallengesLiveData().observeForever(mapListsObserver)
     }
 
-    private fun mapChallenge() {
-        return challengeRepository.getChallengeLiveData().observeForever(mapChallengeObserver)
+    private fun mapError(){
+        return challengeRepository.getErrorLiveData().observeForever(mapErrorObserver)
     }
 
     fun getLoadedCompletedList()= auxCompletedChallengesList

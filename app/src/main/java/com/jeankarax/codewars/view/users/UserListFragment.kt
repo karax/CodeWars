@@ -7,6 +7,7 @@ import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
@@ -16,6 +17,7 @@ import androidx.navigation.Navigation
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.jeankarax.codewars.R
+import com.jeankarax.codewars.utils.EspressoIdlingResource
 import com.jeankarax.codewars.viewmodel.UserListViewModel
 import kotlinx.android.synthetic.main.fragment_users.*
 
@@ -43,7 +45,7 @@ class UserListFragment : Fragment() {
     }
 
     private fun buildRecyclerView() {
-        userListAdapter = UserListAdapter(arrayListOf())
+        userListAdapter = UserListAdapter(arrayListOf(), this)
         rv_users_list.layoutManager = LinearLayoutManager(context)
         rv_users_list.adapter = userListAdapter
         rv_users_list.addItemDecoration(
@@ -56,12 +58,8 @@ class UserListFragment : Fragment() {
 
     private fun setOnClickListeners() {
         ib_search.setOnClickListener {
-            viewModel.getUser(et_search_user_name.text.toString())
-            viewModel.userLiveData.observeOnce(viewLifecycleOwner, Observer {  user ->
-                val action = UserListFragmentDirections.actionGoToChallenges(user.username)
-                view?.let { Navigation.findNavController(it).navigate(action) }  })
+                getUser()
         }
-
         mt_toolbar.setOnMenuItemClickListener { itemClicked ->
             return@setOnMenuItemClickListener when (itemClicked.itemId) {
                 R.id.menu_sort_user_list -> {
@@ -77,9 +75,7 @@ class UserListFragment : Fragment() {
 
         viewModel.userListLiveData.observe(viewLifecycleOwner, Observer {
                 rv_users_list.apply {
-                    it?.let {
-                        userListAdapter.updateUserList(it)
-                    }
+                    userListAdapter.updateUserList(it)
                 }
         })
 
@@ -91,12 +87,6 @@ class UserListFragment : Fragment() {
                     rv_users_list.visibility = VISIBLE
                     progressBar.visibility = GONE
                 }
-        })
-
-        viewModel.errorLiveData.observeOnce(viewLifecycleOwner, Observer { isErrorReturned ->
-            run {
-                //TODO implement error
-            }
         })
     }
 
@@ -123,7 +113,31 @@ class UserListFragment : Fragment() {
             .show()
     }
 
-    fun <T> LiveData<T>.observeOnce(lifecycleOwner: LifecycleOwner, observer: Observer<T>){
+    private fun getUser() {
+        EspressoIdlingResource.increment()
+        if (et_search_user_name.text.isNullOrBlank()) {
+            tv_empty_user_error.visibility = VISIBLE
+
+        } else {
+            tv_empty_user_error.visibility = GONE
+            viewModel.getUser(et_search_user_name.text.toString())
+            viewModel.userLiveData.observeOnce(viewLifecycleOwner, Observer {
+                val action =
+                    UserListFragmentDirections.actionGoToChallenges(et_search_user_name.text.toString())
+                view?.let {
+                    parentFragment?.view?.let { parentFragment ->
+                        Navigation.findNavController(parentFragment).navigate(action)
+                    }
+                }
+                EspressoIdlingResource.decrement()
+            })
+            viewModel.errorLiveData.observeOnce(viewLifecycleOwner, Observer {
+                Toast.makeText(this.context, it, Toast.LENGTH_LONG).show()
+            })
+        }
+    }
+
+    private fun <T> LiveData<T>.observeOnce(lifecycleOwner: LifecycleOwner, observer: Observer<T>){
         observe(lifecycleOwner, object: Observer<T>{
             override fun onChanged(t: T?) {
                 observer.onChanged(t)

@@ -7,7 +7,7 @@ import dagger.Module
 import dagger.Provides
 
 @Module(includes = [APICallsModule::class])
-class ChallengeRepositoryModule {
+open class ChallengeRepositoryModule {
     @Provides
     open fun providesChallengeRepository(challengeAPI: ChallengeAPI): IChallengeRepository{
         return ChallengeRepository(challengeAPI)

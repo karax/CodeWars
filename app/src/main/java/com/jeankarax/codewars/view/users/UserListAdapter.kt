@@ -10,7 +10,8 @@ import com.jeankarax.codewars.model.response.UserResponse
 import kotlinx.android.synthetic.main.item_user.view.*
 
 class UserListAdapter(
-    private val userList: ArrayList<UserResponse>
+    private val userList: ArrayList<UserResponse>,
+    private val parentFragment: UserListFragment
 ):
     RecyclerView.Adapter<UserListAdapter.UserViewHolder>() {
 
@@ -33,7 +34,7 @@ class UserListAdapter(
     override fun onBindViewHolder(holder: UserViewHolder, position: Int) {
         holder.view.setOnClickListener {
             val action = UserListFragmentDirections.actionGoToChallenges(userList[position].username)
-            Navigation.findNavController(it).navigate(action)
+            parentFragment.view?.let { parentFragment -> Navigation.findNavController(parentFragment).navigate(action) }
         }
         if(userList[position].name.isNullOrBlank()){
             holder.view.tv_name.text = userList[position].username

@@ -23,7 +23,6 @@ constructor(
     private val challengeAPI: ChallengeAPI
 ):IChallengeRepository, CoroutineScope {
 
-    @Inject
     lateinit var mApplication: Application
 
     private val disposable = CompositeDisposable()
@@ -94,7 +93,7 @@ constructor(
 
     override fun getAllChallengesLiveData(): LiveData<MutableList<ChallengesListResponse>> = allChallenges
 
-    override fun getErrorObservable(): LiveData<Throwable> = error
+    override fun getErrorLiveData(): LiveData<Throwable> = error
 
     override fun clearDisposable() {
         disposable.clear()

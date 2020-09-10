@@ -2,17 +2,18 @@ package com.jeankarax.codewars.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.*
-import com.jeankarax.codewars.model.di.DaggerUserComponent
+import com.jeankarax.codewars.R
 import com.jeankarax.codewars.model.di.DaggerUserRepositoryComponent
 import com.jeankarax.codewars.model.response.UserResponse
 import com.jeankarax.codewars.model.repository.IUserRepository
+import retrofit2.HttpException
 import javax.inject.Inject
 
 class UserListViewModel(application: Application) : AndroidViewModel(application) {
 
     val userLiveData by lazy { MutableLiveData<UserResponse>() }
     val userListLiveData by lazy { MutableLiveData<List<UserResponse>>() }
-    val errorLiveData by lazy { MutableLiveData<Boolean>() }
+    val errorLiveData by lazy { MutableLiveData<String>() }
     val loading by lazy { MutableLiveData<Boolean>() }
     private var unsortedList = ArrayList<UserResponse>()
 
@@ -20,10 +21,7 @@ class UserListViewModel(application: Application) : AndroidViewModel(application
     lateinit var userRepository: IUserRepository
 
     init{
-        DaggerUserComponent.create().inject(this)
-        DaggerUserRepositoryComponent.builder()
-            .build()
-            .inject(application)
+        DaggerUserRepositoryComponent.create().inject(this)
         userRepository.setApplicationContext(getApplication())
     }
 
@@ -34,7 +32,9 @@ class UserListViewModel(application: Application) : AndroidViewModel(application
 
     private val mapErrorObserver = Observer<Throwable> {
         loading.value = false
-        errorLiveData.value = true
+        if(it is HttpException){
+            errorLiveData.value = application.getString(R.string.text_error_user_not_found)
+        }
     }
 
     private val mapUserListObserver = Observer<ArrayList<UserResponse>> {
@@ -47,7 +47,6 @@ class UserListViewModel(application: Application) : AndroidViewModel(application
         loading.value = true
         userRepository.getUser(userName)
         mapUser()
-        mapError()
     }
 
     fun getUsersList(){
@@ -82,6 +81,7 @@ class UserListViewModel(application: Application) : AndroidViewModel(application
         super.onCleared()
         userRepository.getUserObservable().removeObserver(mapUserObserver)
         userRepository.getErrorObservable().removeObserver(mapErrorObserver)
+        userRepository.getUsersListObservable().removeObserver(mapUserListObserver)
         userRepository.clearDisposable()
     }
 
