@@ -9,6 +9,7 @@ import androidx.lifecycle.MediatorLiveData
 import com.jeankarax.codewars.model.api.UserAPI
 import com.jeankarax.codewars.model.response.UserResponse
 import com.jeankarax.codewars.model.room.UserLocalDataBase
+import com.jeankarax.codewars.utils.Utils
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.observers.DisposableSingleObserver
@@ -32,7 +33,7 @@ constructor(
 
     override fun getUser(userName: String) {
         var userFromDataBase: UserResponse? = null
-        if (!isOnline(mApplication)){
+        if (!Utils.isOnline(mApplication)){
             userFromDataBase = getUserFromDataBase(userName)
         }
         if(null != userFromDataBase){
@@ -96,23 +97,6 @@ constructor(
 
     override fun setApplicationContext(application: Application) {
         mApplication = application
-    }
-
-    fun isOnline(context: Context):Boolean{
-        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        if (connectivityManager != null){
-            val capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
-            capabilities?.let {
-                if (it.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)){
-                    return true
-                }else if(it.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)){
-                    return true
-                }else if(it.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)){
-                    return true
-                }
-            }
-        }
-        return false
     }
 
 }
