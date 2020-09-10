@@ -9,15 +9,17 @@ import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.jeankarax.codewars.model.response.ChallengeResponse
+import com.jeankarax.codewars.model.response.ChallengesListResponse
 import com.jeankarax.codewars.model.response.UserResponse
 
-@Database(entities = [UserResponse::class, ChallengeResponse::class], version = 1)
+@Database(entities = [UserResponse::class, ChallengeResponse::class, ChallengesListResponse::class], version = 1)
 @TypeConverters(
     StringListConverter::class,
     LanguageRankConverter::class,
     DateConverter::class,
     RankConverter::class,
-    UserConverter::class
+    UserConverter::class,
+    ChallengeResponseListConverter::class
 )
 abstract class UserLocalDataBase: RoomDatabase() {
     abstract fun userDAO(): UserDAO

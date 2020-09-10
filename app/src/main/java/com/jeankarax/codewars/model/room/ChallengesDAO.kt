@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.jeankarax.codewars.model.response.ChallengeResponse
+import com.jeankarax.codewars.model.response.ChallengesListResponse
 
 @Dao
 interface ChallengesDAO {
@@ -14,5 +15,11 @@ interface ChallengesDAO {
 
     @Query("SELECT * FROM Challenge WHERE id = :queryChallengeId")
     fun getChallenge(queryChallengeId: String): ChallengeResponse
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun saveChallengesList(challengesList: ChallengesListResponse): Long
+
+    @Query("SELECT * FROM ChallengesList WHERE id = :queryChallengesListId AND pageNumber= :queryPage")
+    fun getChallengesList(queryChallengesListId: String, queryPage: Long): ChallengesListResponse
 
 }
