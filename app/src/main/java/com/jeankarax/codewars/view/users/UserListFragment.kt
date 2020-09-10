@@ -58,11 +58,11 @@ class UserListFragment : Fragment() {
     private fun setOnClickListeners() {
         ib_search.setOnClickListener {
             viewModel.getUser(et_search_user_name.text.toString())
-            viewModel.userLiveData.observeOnce(viewLifecycleOwner, Observer {  user ->
+            viewModel.userLiveData.observeOnce(viewLifecycleOwner, Observer {
                 val action = UserListFragmentDirections.actionGoToChallenges(et_search_user_name.text.toString())
                 view?.let { parentFragment?.view?.let { parentFragment ->
                     Navigation.findNavController(parentFragment).navigate(action) } }  })
-            viewModel.errorLiveData.observeOnce(viewLifecycleOwner, Observer { isErrorReturned ->
+            viewModel.errorLiveData.observeOnce(viewLifecycleOwner, Observer {
                 Toast.makeText(this.context, "User not found", Toast.LENGTH_LONG).show()
             })
         }
@@ -82,9 +82,7 @@ class UserListFragment : Fragment() {
 
         viewModel.userListLiveData.observe(viewLifecycleOwner, Observer {
                 rv_users_list.apply {
-                    it?.let {
-                        userListAdapter.updateUserList(it)
-                    }
+                    userListAdapter.updateUserList(it)
                 }
         })
 
@@ -122,7 +120,7 @@ class UserListFragment : Fragment() {
             .show()
     }
 
-    fun <T> LiveData<T>.observeOnce(lifecycleOwner: LifecycleOwner, observer: Observer<T>){
+    private fun <T> LiveData<T>.observeOnce(lifecycleOwner: LifecycleOwner, observer: Observer<T>){
         observe(lifecycleOwner, object: Observer<T>{
             override fun onChanged(t: T?) {
                 observer.onChanged(t)
