@@ -11,6 +11,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.jeankarax.codewars.R
 import com.jeankarax.codewars.model.response.ChallengeResponse
+import com.jeankarax.codewars.utils.EspressoIdlingResource
 import com.jeankarax.codewars.view.Constants
 import com.jeankarax.codewars.viewmodel.ChallengesListsViewModel
 import kotlinx.android.synthetic.main.fragment_challenge.*
@@ -41,7 +42,7 @@ class ChallengeFragment : Fragment() {
         }
 
         viewModel.isError.observe(viewLifecycleOwner, Observer {
-            if(it == Constants().PAGE_NOT_FOUND_ERROR){
+            if(it == Constants.PAGE_NOT_FOUND_ERROR){
                 sv_challenge_details.visibility = View.GONE
                 tv_error_challenge_not_found.visibility = VISIBLE
                 bottom_toolbar.visibility = View.GONE
@@ -73,6 +74,7 @@ class ChallengeFragment : Fragment() {
             }
             tv_challenge_tags.text = getString(R.string.label_challenge_tags, tags)
         }
+        EspressoIdlingResource.decrement()
     }
 
 }

@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.jeankarax.codewars.R
 import com.jeankarax.codewars.model.response.ChallengeResponse
+import com.jeankarax.codewars.utils.EspressoIdlingResource
 import com.jeankarax.codewars.viewmodel.ChallengesListsViewModel
 import kotlinx.android.synthetic.main.fragment_completed_challenges_list.*
 
@@ -41,6 +42,7 @@ class CompletedChallengesFragment(private val viewModel: ChallengesListsViewMode
                 (rv_completed_challenges_list.layoutManager as LinearLayoutManager).orientation
             )
         )
+        EspressoIdlingResource.decrement()
     }
 
 }
