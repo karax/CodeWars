@@ -2,6 +2,7 @@ package com.jeankarax.codewars.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.*
+import com.jeankarax.codewars.R
 import com.jeankarax.codewars.model.di.DaggerUserRepositoryComponent
 import com.jeankarax.codewars.model.response.UserResponse
 import com.jeankarax.codewars.model.repository.IUserRepository
@@ -32,7 +33,7 @@ class UserListViewModel(application: Application) : AndroidViewModel(application
     private val mapErrorObserver = Observer<Throwable> {
         loading.value = false
         if(it is HttpException){
-            errorLiveData.value = it.code().toString()
+            errorLiveData.value = application.getString(R.string.text_error_user_not_found)
         }
     }
 
