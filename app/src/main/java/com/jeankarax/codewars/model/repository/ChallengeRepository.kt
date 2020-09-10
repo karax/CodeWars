@@ -7,6 +7,8 @@ import androidx.lifecycle.MutableLiveData
 import com.jeankarax.codewars.model.api.ChallengeAPI
 import com.jeankarax.codewars.model.response.ChallengeResponse
 import com.jeankarax.codewars.model.response.ChallengesListResponse
+import com.jeankarax.codewars.model.room.UserLocalDataBase
+import com.jeankarax.codewars.utils.Utils
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.observers.DisposableSingleObserver
@@ -33,11 +35,16 @@ constructor(
     private var auxAllChallengesList = mutableListOf<ChallengesListResponse>()
 
     override fun getChallenge(id: String) {
+        if(!Utils.isOnline(mApplication)){
+            var challengeResponse = UserLocalDataBase(mApplication).challengeDAO().getChallenge(id)
+            challenge.postValue(challengeResponse)
+        }else{
         disposable.add(challengeAPI.getChallenge(id)
             .subscribeOn(Schedulers.newThread())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeWith(object: DisposableSingleObserver<ChallengeResponse>(){
                 override fun onSuccess(t: ChallengeResponse) {
+                    saveChallengeToDataBase(t)
                     challenge.postValue(t)
                 }
 
@@ -46,6 +53,11 @@ constructor(
                 }
 
             }))
+        }
+    }
+
+    private fun saveChallengeToDataBase(challenge: ChallengeResponse) {
+        UserLocalDataBase(mApplication).challengeDAO().saveChallenge(challenge)
     }
 
     override fun getCompletedChallenges(userName: String, page: Long, isFirstCall: Boolean) {
