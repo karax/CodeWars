@@ -6,17 +6,24 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
+import com.jeankarax.codewars.model.response.ChallengeResponse
+import com.jeankarax.codewars.model.response.ChallengesListResponse
 import com.jeankarax.codewars.model.response.UserResponse
 
-@Database(entities = [UserResponse::class], version = 1)
+@Database(entities = [UserResponse::class, ChallengeResponse::class, ChallengesListResponse::class], version = 1)
 @TypeConverters(
     StringListConverter::class,
     LanguageRankConverter::class,
     DateConverter::class,
-    RankConverter::class
+    RankConverter::class,
+    UserConverter::class,
+    ChallengeResponseListConverter::class
 )
 abstract class UserLocalDataBase: RoomDatabase() {
     abstract fun userDAO(): UserDAO
+    abstract fun challengeDAO(): ChallengesDAO
 
     companion object{
         @Volatile
@@ -28,6 +35,12 @@ abstract class UserLocalDataBase: RoomDatabase() {
                 instance = it
             }
         }
+
+        //private val migration1to2 = object : Migration(1,2){
+        //    override fun migrate(database: SupportSQLiteDatabase) {
+        //        database.execSQL("CREATE TABLE IF NOT EXISTS 'Challenge'()")
+        //    }
+        //}
 
         private fun buildDataBase(application: Application) = Room.databaseBuilder(
             application.applicationContext,

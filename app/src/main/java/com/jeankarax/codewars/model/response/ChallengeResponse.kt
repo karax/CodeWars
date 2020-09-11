@@ -1,31 +1,38 @@
 package com.jeankarax.codewars.model.response
 
+import androidx.annotation.NonNull
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import java.io.Serializable
 import java.util.*
 
-class ChallengeResponse (
+@Entity(tableName = "Challenge")
+data class ChallengeResponse (
 
-    var id: String = "",
-    var name: String? = null,
-    var slug: String? = null,
-    var category: String? = null,
-    var publishedAt: Date? = null,
-    var approvedAt: Date? = null,
-    var completedAt: Date? = null,
-    var languages: List<String>? = null,
-    var url: String? = null,
-    var createdAt: String? = null,
-    var owner: String? = null,
-    var createdBy: UserResponse? = null,
+    @NonNull
+    @PrimaryKey
+    val id: String = "",
+    val name: String? = null,
+    val slug: String? = null,
+    val category: String? = null,
+    val publishedAt: Date? = null,
+    val approvedAt: Date? = null,
+    val completedAt: Date? = null,
+    val languages: List<String>? = null,
+    val url: String? = null,
+    val createdAt: String? = null,
+    val owner: String? = null,
 
-    var approvedBy: UserResponse? = null,
+    val createdBy: UserResponse? = null,
 
-    var description: String? = null,
-    var totalAttempts: Long? = null,
-    var totalCompleted: Long? = null,
-    var totalStars: Long? = null,
-    var voteScore: Long? = null,
-    var tags: List<String>? = null,
-    var contributorsWanted: Boolean? = null,
-    var type: String? = null
+    val approvedBy: UserResponse? = null,
+    val description: String? = null,
+    val totalAttempts: Long? = null,
+    val totalCompleted: Long? = null,
+    val totalStars: Long? = null,
+    val voteScore: Long? = null,
+    val tags: List<String>? = null,
+    val contributorsWanted: Boolean? = null,
+    val type: String? = null
 
-)
+):Serializable
