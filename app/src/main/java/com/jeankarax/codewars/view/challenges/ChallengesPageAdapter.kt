@@ -20,7 +20,7 @@ class ChallengesPageAdapter(fragmentManager: FragmentManager, lifecycle: Lifecyc
                 mViewModel
             )
         }
-        return ErrorFragment()
+        return BlankFragment()
     }
 
     override fun getItemCount() = 2

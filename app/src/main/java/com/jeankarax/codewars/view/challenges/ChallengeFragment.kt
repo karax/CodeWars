@@ -5,6 +5,7 @@ import android.text.Html
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.Toast
@@ -37,19 +38,34 @@ class ChallengeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         viewModel = ViewModelProviders.of(this).get(ChallengeViewModel::class.java)
-        viewModel.challengeLiveData.observe(viewLifecycleOwner, Observer {
-            challenge = it
-            bindComponents()
-        })
+
+        setObservers()
+
         arguments?.let{
             viewModel.getChallenge(ChallengeFragmentArgs.fromBundle(it).challengeId)
         }
 
+
+    }
+
+    private fun setObservers() {
+        viewModel.challengeLiveData.observe(viewLifecycleOwner, Observer {
+            challenge = it
+            bindComponents()
+        })
         viewModel.isError.observe(viewLifecycleOwner, Observer {
-            sv_challenge_details.visibility = View.GONE
+            sv_challenge_details.visibility = GONE
             Toast.makeText(context, it, Toast.LENGTH_LONG).show()
         })
-
+        viewModel.isLoading.observe(viewLifecycleOwner, Observer {
+            if (it){
+                sv_challenge_details.visibility = GONE
+                pb_challenge_loading.visibility = VISIBLE
+            }else{
+                sv_challenge_details.visibility = VISIBLE
+                pb_challenge_loading.visibility = GONE
+            }
+        })
     }
 
     private fun bindComponents() {

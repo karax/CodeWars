@@ -40,7 +40,6 @@ class ChallengeViewModel(application: Application): AndroidViewModel(application
         }
     }
 
-
     fun getChallenge(challengeId: String){
         isLoading.value = true
         challengeRepository.getChallenge(challengeId)
@@ -54,6 +53,12 @@ class ChallengeViewModel(application: Application): AndroidViewModel(application
 
     private fun mapError(){
         return challengeRepository.getErrorLiveData().observeForever(mapErrorObserver)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        challengeRepository.getChallengeLiveData().removeObserver(mapChallengeObserver)
+        challengeRepository.getErrorLiveData().removeObserver(mapErrorObserver)
     }
 
 }

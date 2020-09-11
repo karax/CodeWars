@@ -36,12 +36,6 @@ abstract class UserLocalDataBase: RoomDatabase() {
             }
         }
 
-        //private val migration1to2 = object : Migration(1,2){
-        //    override fun migrate(database: SupportSQLiteDatabase) {
-        //        database.execSQL("CREATE TABLE IF NOT EXISTS 'Challenge'()")
-        //    }
-        //}
-
         private fun buildDataBase(application: Application) = Room.databaseBuilder(
             application.applicationContext,
             UserLocalDataBase::class.java,
