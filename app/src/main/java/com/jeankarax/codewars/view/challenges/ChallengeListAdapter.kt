@@ -14,6 +14,9 @@ import com.jeankarax.codewars.utils.EspressoIdlingResource
 import com.jeankarax.codewars.viewmodel.ChallengesListsViewModel
 import kotlinx.android.synthetic.main.item_challenge_list.view.*
 import kotlinx.android.synthetic.main.item_loading_challenge.view.*
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 class ChallengeListAdapter(
     private val challengeList: List<ChallengeResponse>,
@@ -67,7 +70,11 @@ class ChallengeListAdapter(
     private fun populateItems(holder: ChallengeViewHolder, position: Int) {
         holder.view.tv_item_challenge_title.text = challengeList[position].name
         if (challengeList[position].completedAt != null) {
-            holder.view.tv_item_challenge_date.text = challengeList[position].completedAt.toString()
+            val formatter = DateTimeFormatter.ofPattern("MMMM dd - yyyy")
+            holder.view.tv_item_challenge_date.text = mParentFragment.getString(
+                R.string.label_challenge_completed_at, formatter.format(
+                    LocalDateTime.ofInstant(challengeList[position].completedAt?.toInstant(),
+                        ZoneId.systemDefault())))
         } else {
             var tags = ""
             if (challengeList[position].tags != null) {

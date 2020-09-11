@@ -79,11 +79,14 @@ class ChallengesListsViewModel(application: Application): AndroidViewModel(appli
         auxNextPage = 1
     }
 
-
     fun getNextPage() {
         challengeRepository.getCompletedChallenges(auxUserName, auxNextPage, false)
         auxNextPage++
     }
+
+    fun getLoadedCompletedList()= auxCompletedChallengesList
+
+    fun getLoadedAuthoredList() = auxAuthoredChallengeList
 
     private fun mapLists() {
         return challengeRepository.getAllChallengesLiveData().observeForever(mapListsObserver)
@@ -93,14 +96,10 @@ class ChallengesListsViewModel(application: Application): AndroidViewModel(appli
         return challengeRepository.getErrorLiveData().observeForever(mapErrorObserver)
     }
 
-    fun getLoadedCompletedList()= auxCompletedChallengesList
-
-
-    fun getLoadedAuthoredList() = auxAuthoredChallengeList
-
     override fun onCleared() {
         super.onCleared()
         challengeRepository.getAllChallengesLiveData().removeObserver(mapListsObserver)
+        challengeRepository.getErrorLiveData().removeObserver(mapErrorObserver)
         challengeRepository.clearDisposable()
     }
 }

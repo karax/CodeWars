@@ -23,7 +23,7 @@ class ChallengeRepository
 @Inject
 constructor(
     private val challengeAPI: ChallengeAPI
-):IChallengeRepository, CoroutineScope {
+):IChallengeRepository {
 
     lateinit var mApplication: Application
 
@@ -54,18 +54,6 @@ constructor(
 
             }))
         }
-    }
-
-    private fun saveChallengeToDataBase(challenge: ChallengeResponse) {
-        UserLocalDataBase(mApplication).challengeDAO().saveChallenge(challenge)
-    }
-
-    private fun saveChallengesListToDataBase(challengesList: ChallengesListResponse,
-                                             userName: String, page: Long, type: String){
-        challengesList.id = userName+type
-        challengesList.pageNumber = page
-        challengesList.type = type
-        UserLocalDataBase(mApplication).challengeDAO().saveChallengesList(challengesList)
     }
 
     override fun getCompletedChallenges(userName: String, page: Long, isFirstCall: Boolean) {
@@ -103,12 +91,6 @@ constructor(
         }
     }
 
-    private fun getChallengeListFromDataBase(userName: String, page: Long, type: String): ChallengesListResponse {
-        val queryUserName = userName + type
-        return UserLocalDataBase.invoke(mApplication).challengeDAO().getChallengesList(queryUserName, page)
-    }
-
-
     override fun getAuthoredChallenges(userName: String) {
         if(!Utils.isOnline(mApplication)){
             auxAllChallengesList.add(getChallengeListFromDataBase(userName, 0, "authored"))
@@ -139,19 +121,28 @@ constructor(
 
     override fun getErrorLiveData(): LiveData<Throwable> = error
 
+    private fun saveChallengeToDataBase(challenge: ChallengeResponse) {
+        UserLocalDataBase(mApplication).challengeDAO().saveChallenge(challenge)
+    }
+
+    private fun saveChallengesListToDataBase(challengesList: ChallengesListResponse,
+                                             userName: String, page: Long, type: String){
+        challengesList.id = userName+type
+        challengesList.pageNumber = page
+        challengesList.type = type
+        UserLocalDataBase(mApplication).challengeDAO().saveChallengesList(challengesList)
+    }
+
+    private fun getChallengeListFromDataBase(userName: String, page: Long, type: String): ChallengesListResponse {
+        val queryUserName = userName + type
+        return UserLocalDataBase.invoke(mApplication).challengeDAO().getChallengesList(queryUserName, page)
+    }
+
     override fun clearDisposable() {
         disposable.clear()
-        job.cancel()
     }
 
     override fun setApplicationContext(application: Application) {
         mApplication = application
     }
-
-    private val job = Job()
-
-    override val coroutineContext: CoroutineContext
-        get() = job + Dispatchers.Main
-
-
 }
