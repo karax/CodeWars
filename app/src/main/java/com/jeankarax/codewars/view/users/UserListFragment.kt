@@ -44,6 +44,12 @@ class UserListFragment : Fragment() {
         viewModel.getUsersList()
     }
 
+    override fun onResume() {
+        super.onResume()
+        isOrderedByRank = false
+        tv_users_ordered_by.text = getString(R.string.text_users_ordered_by_search)
+    }
+
     private fun buildRecyclerView() {
         userListAdapter = UserListAdapter(arrayListOf(), this)
         rv_users_list.layoutManager = LinearLayoutManager(context)
@@ -102,9 +108,11 @@ class UserListFragment : Fragment() {
                     if (isChecked){
                         isOrderedByRank = true
                         viewModel.getSortedUserList()
+                        tv_users_ordered_by.text = getString(R.string.text_users_ordered_by_rank)
                     }else{
                         isOrderedByRank = false
                         viewModel.getUnsortedUserList()
+                        tv_users_ordered_by.text = getString(R.string.text_users_ordered_by_search)
                     }
                 }
                 dialog.dismiss()

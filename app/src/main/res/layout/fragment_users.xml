@@ -49,8 +49,13 @@
         android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/et_search_user_name"
         app:layout_constraintStart_toStartOf="parent"
-
         />
+
+    <TextView
+        android:id="@+id/tv_users_ordered_by"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/tv_empty_user_error"/>
 
     <ImageButton
         android:id="@+id/ib_search"
@@ -74,7 +79,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tv_empty_user_error"
+        app:layout_constraintTop_toBottomOf="@id/tv_users_ordered_by"
         tools:listitem="@layout/item_user"/>
 
     <TextView
