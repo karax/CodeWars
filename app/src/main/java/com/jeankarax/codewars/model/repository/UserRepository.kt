@@ -44,9 +44,7 @@ constructor(
             }
         }
         if(null != userFromDataBase){
-            CoroutineScope(IO).launch {
-                saveUserToDataBase(userFromDataBase!!)
-            }
+            saveUserToDataBase(userFromDataBase!!)
             user.postValue(userFromDataBase)
         }else{
             disposable.add(userAPI.getUser(userName)
@@ -54,9 +52,7 @@ constructor(
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeWith(object: DisposableSingleObserver<UserResponse>(){
                     override fun onSuccess(t: UserResponse) {
-                        CoroutineScope(IO).launch {
-                            saveUserToDataBase(t)
-                        }
+                        saveUserToDataBase(t)
                         user.postValue(t)
                     }
                     override fun onError(e: Throwable) {
@@ -94,9 +90,11 @@ constructor(
         return error
     }
 
-    private suspend fun saveUserToDataBase(user: UserResponse){
-        user.creationDate = Date()
-        UserLocalDataBase(mApplication).userDAO().saveUser(user)
+    private fun saveUserToDataBase(user: UserResponse){
+        CoroutineScope(IO).launch{
+            user.creationDate = Date()
+            UserLocalDataBase(mApplication).userDAO().saveUser(user)
+        }
     }
 
     private suspend fun getUserFromDataBase(userName: String): UserResponse{
