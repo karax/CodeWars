@@ -13,9 +13,9 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.observers.DisposableSingleObserver
 import io.reactivex.schedulers.Schedulers
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Dispatchers.Main
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 
@@ -36,15 +36,23 @@ constructor(
 
     override fun getChallenge(id: String) {
         if(!Utils.isOnline(mApplication)){
-            val challengeResponse = UserLocalDataBase(mApplication).challengeDAO().getChallenge(id)
-            challenge.postValue(challengeResponse)
+            var challengeResponse: ChallengeResponse
+            CoroutineScope(IO).launch {
+                challengeResponse = UserLocalDataBase(mApplication).challengeDAO().getChallenge(id)
+                withContext(Main){
+                    challenge.postValue(challengeResponse)
+
+                }
+            }
         }else{
         disposable.add(challengeAPI.getChallenge(id)
             .subscribeOn(Schedulers.newThread())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeWith(object: DisposableSingleObserver<ChallengeResponse>(){
                 override fun onSuccess(t: ChallengeResponse) {
-                    saveChallengeToDataBase(t)
+                    CoroutineScope(IO).launch {
+                        saveChallengeToDataBase(t)
+                    }
                     challenge.postValue(t)
                 }
 
@@ -59,10 +67,14 @@ constructor(
     override fun getCompletedChallenges(userName: String, page: Long, isFirstCall: Boolean) {
         if(!Utils.isOnline(mApplication)){
             if(isFirstCall) {
-                auxAllChallengesList.add(getChallengeListFromDataBase(userName, 0, "completed"))
+                CoroutineScope(IO).launch {
+                    auxAllChallengesList.add(getChallengeListFromDataBase(userName, 0, "completed"))
+                }
                 getAuthoredChallenges(userName)
             }else{
-                auxAllChallengesList.add(getChallengeListFromDataBase(userName, page, "completed"))
+                CoroutineScope(IO).launch {
+                    auxAllChallengesList.add(getChallengeListFromDataBase(userName, page, "completed"))
+                }
                 allChallenges.postValue(auxAllChallengesList)
             }
         }else {
@@ -72,11 +84,15 @@ constructor(
                 .subscribeWith(object : DisposableSingleObserver<ChallengesListResponse>() {
                     override fun onSuccess(t: ChallengesListResponse) {
                         if (isFirstCall) {
-                            saveChallengesListToDataBase(t, userName, 0, "completed")
+                            CoroutineScope(IO).launch{
+                                saveChallengesListToDataBase(t, userName, 0, "completed")
+                            }
                             auxAllChallengesList.add(t)
                             getAuthoredChallenges(userName)
                         } else {
-                            saveChallengesListToDataBase(t, userName, page, "completed")
+                            CoroutineScope(IO).launch {
+                                saveChallengesListToDataBase(t, userName, page, "completed")
+                            }
                             auxAllChallengesList[0] = t
                             allChallenges.postValue(auxAllChallengesList)
                         }
@@ -93,7 +109,9 @@ constructor(
 
     override fun getAuthoredChallenges(userName: String) {
         if(!Utils.isOnline(mApplication)){
-            auxAllChallengesList.add(getChallengeListFromDataBase(userName, 0, "authored"))
+            CoroutineScope(IO).launch {
+                auxAllChallengesList.add(getChallengeListFromDataBase(userName, 0, "authored"))
+            }
             allChallenges.postValue(auxAllChallengesList)
         }
         disposable.add(challengeAPI.getAuthoredChallenges(userName)
@@ -101,7 +119,9 @@ constructor(
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeWith(object : DisposableSingleObserver<ChallengesListResponse>(){
                 override fun onSuccess(t: ChallengesListResponse) {
-                    saveChallengesListToDataBase(t, userName, 0, "authored")
+                    CoroutineScope(IO).launch {
+                        saveChallengesListToDataBase(t, userName, 0, "authored")
+                    }
                     auxAllChallengesList.add(t)
                     allChallenges.postValue(auxAllChallengesList)
                 }
@@ -121,19 +141,19 @@ constructor(
 
     override fun getErrorLiveData(): LiveData<Throwable> = error
 
-    private fun saveChallengeToDataBase(challenge: ChallengeResponse) {
+    private suspend fun saveChallengeToDataBase(challenge: ChallengeResponse) {
         UserLocalDataBase(mApplication).challengeDAO().saveChallenge(challenge)
     }
 
-    private fun saveChallengesListToDataBase(challengesList: ChallengesListResponse,
-                                             userName: String, page: Long, type: String){
+    private suspend fun saveChallengesListToDataBase(challengesList: ChallengesListResponse,
+                                                     userName: String, page: Long, type: String){
         challengesList.id = userName+type
         challengesList.pageNumber = page
         challengesList.type = type
         UserLocalDataBase(mApplication).challengeDAO().saveChallengesList(challengesList)
     }
 
-    private fun getChallengeListFromDataBase(userName: String, page: Long, type: String): ChallengesListResponse {
+    private suspend fun getChallengeListFromDataBase(userName: String, page: Long, type: String): ChallengesListResponse {
         val queryUserName = userName + type
         return UserLocalDataBase.invoke(mApplication).challengeDAO().getChallengesList(queryUserName, page)
     }

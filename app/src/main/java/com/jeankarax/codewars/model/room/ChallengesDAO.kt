@@ -11,15 +11,15 @@ import com.jeankarax.codewars.model.response.ChallengesListResponse
 interface ChallengesDAO {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun saveChallenge(challenge: ChallengeResponse): Long
+    suspend fun saveChallenge(challenge: ChallengeResponse): Long
 
     @Query("SELECT * FROM Challenge WHERE id = :queryChallengeId")
-    fun getChallenge(queryChallengeId: String): ChallengeResponse
+    suspend fun getChallenge(queryChallengeId: String): ChallengeResponse
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun saveChallengesList(challengesList: ChallengesListResponse): Long
+    suspend fun saveChallengesList(challengesList: ChallengesListResponse): Long
 
     @Query("SELECT * FROM ChallengesList WHERE id = :queryChallengesListId AND pageNumber= :queryPage")
-    fun getChallengesList(queryChallengesListId: String, queryPage: Long): ChallengesListResponse
+    suspend fun getChallengesList(queryChallengesListId: String, queryPage: Long): ChallengesListResponse
 
 }

@@ -14,6 +14,11 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.observers.DisposableSingleObserver
 import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.*
 import javax.inject.Inject
 import kotlin.collections.ArrayList
@@ -34,10 +39,14 @@ constructor(
     override fun getUser(userName: String) {
         var userFromDataBase: UserResponse? = null
         if (!Utils.isOnline(mApplication)){
-            userFromDataBase = getUserFromDataBase(userName)
+            CoroutineScope(IO).launch {
+                userFromDataBase = getUserFromDataBase(userName)
+            }
         }
         if(null != userFromDataBase){
-            saveUserToDataBase(userFromDataBase)
+            CoroutineScope(IO).launch {
+                saveUserToDataBase(userFromDataBase!!)
+            }
             user.postValue(userFromDataBase)
         }else{
             disposable.add(userAPI.getUser(userName)
@@ -45,7 +54,9 @@ constructor(
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeWith(object: DisposableSingleObserver<UserResponse>(){
                     override fun onSuccess(t: UserResponse) {
-                        saveUserToDataBase(t)
+                        CoroutineScope(IO).launch {
+                            saveUserToDataBase(t)
+                        }
                         user.postValue(t)
                     }
                     override fun onError(e: Throwable) {
@@ -58,12 +69,17 @@ constructor(
     }
 
     override fun getUsersList(limit: Int) {
-        var userListFromDataBase: ArrayList<UserResponse> = getLastUsers(limit) as ArrayList<UserResponse>
-        if(null != userListFromDataBase){
-            userList.postValue(userListFromDataBase)
-        }else{
-            isEmptyList.postValue(true)
+        CoroutineScope(IO).launch {
+            var userListFromDataBase: ArrayList<UserResponse> = getLastUsers(limit) as ArrayList<UserResponse>
+            withContext(Main){
+                if(null != userListFromDataBase){
+                    userList.postValue(userListFromDataBase)
+                }else{
+                    isEmptyList.postValue(true)
+                }
+            }
         }
+
     }
 
     override fun getUsersListObservable(): LiveData<ArrayList<UserResponse>> {
@@ -78,16 +94,16 @@ constructor(
         return error
     }
 
-    private fun saveUserToDataBase(user: UserResponse){
+    private suspend fun saveUserToDataBase(user: UserResponse){
         user.creationDate = Date()
         UserLocalDataBase(mApplication).userDAO().saveUser(user)
     }
 
-    private fun getUserFromDataBase(userName: String): UserResponse{
+    private suspend fun getUserFromDataBase(userName: String): UserResponse{
         return UserLocalDataBase(mApplication).userDAO().getUser(userName)
     }
 
-    private fun getLastUsers(limit: Int):List<UserResponse>{
+    private suspend fun getLastUsers(limit: Int):List<UserResponse>{
         return UserLocalDataBase(mApplication).userDAO().getLastUsersList(limit)
     }
 
