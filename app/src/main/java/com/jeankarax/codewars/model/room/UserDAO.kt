@@ -10,11 +10,11 @@ import com.jeankarax.codewars.model.response.UserResponse
 interface UserDAO {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun saveUser(user: UserResponse): Long
+    suspend fun saveUser(user: UserResponse): Long
 
     @Query("SELECT * FROM User WHERE username = :queryUserName")
-    fun getUser(queryUserName: String): UserResponse
+    suspend fun getUser(queryUserName: String): UserResponse
 
     @Query("SELECT * FROM User ORDER BY creationDate desc LIMIT :numberOfUsers;")
-    fun getLastUsersList(numberOfUsers: Int): List<UserResponse>
+    suspend fun getLastUsersList(numberOfUsers: Int): List<UserResponse>
 }
