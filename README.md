@@ -1,13 +1,8 @@
-Here are some comments to explain my development process and choice of tools
+   [CodeWars](https://www.codewars.com/) is a community for developers and those who wants to learn computer programming. Its platform offers a plenty of challenges from beginner to advanced level. To motivate the users to do the challenges, it uses gamification ranking the users with most complete challenges, creating guilds of users to compete with another guilds, etc.
+   
+   I created CodeWars Users Rank in order to train my Kotlin skills with new technologies that are being launched by google, such as Navigation Actions and Hilt, and also implement already known concepts such as TDD, SOLID and MVVM.
+   
+   The app uses CodeWars public APIs to retrieve the user’s information (such as challenges list) and list the searched users by its rank or by time of look up. 
 
-To maintain the decoupling of the layers, follow the SOLID principles and thus guarantee maintenance flexibility, I decided to use the MVVM architecture with Observer and LiveData.
-To make API calls, I used Retrofit2 with Dagger2 for the simplicity and to keep the code decoupled.I followed TDD development to code the API calls so I could ensure
-that the logic after the response were correct, ensuring data quality. To enhance produtivity, I used navigation to create the fragments flows and transiction actions.
-In addition to the main objective of the challenge, I implemented three extra objectives:
-- Offline functionality
-- Use of kotlin as programming language
-- Espresso to execute the UI test cases
-
-The solution efficiently delivers the challenge, but I see that there is still room for enhancement, adding more test cases to UI and increasing the unit test coverage
 
 Ps. As it uses lattest gradlle version, you need to run it using Android Studio 4.0 version or higher
