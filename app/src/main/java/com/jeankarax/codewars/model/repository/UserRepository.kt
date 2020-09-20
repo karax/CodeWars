@@ -1,25 +1,20 @@
 package com.jeankarax.codewars.model.repository
 
 import android.app.Application
-import android.content.Context
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
+import androidx.lifecycle.MutableLiveData
+import com.jeankarax.codewars.model.response.ViewResponse
 import com.jeankarax.codewars.model.api.UserAPI
 import com.jeankarax.codewars.model.response.UserResponse
 import com.jeankarax.codewars.model.room.UserLocalDataBase
 import com.jeankarax.codewars.utils.Utils
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.observers.DisposableSingleObserver
-import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.*
 import javax.inject.Inject
 import kotlin.collections.ArrayList
 
@@ -35,38 +30,6 @@ constructor(
     private val error = MediatorLiveData<Throwable>()
     private val userList = MediatorLiveData<ArrayList<UserResponse>>()
     private val isEmptyList = MediatorLiveData<Boolean>()
-
-    override fun getUser(userName: String) {
-        var userFromDataBase: UserResponse? = null
-        if (!Utils.isOnline(mApplication)){
-            CoroutineScope(IO).launch {
-                userFromDataBase = getUserFromDataBase(userName)
-            }
-        }
-        if(null != userFromDataBase){
-            CoroutineScope(IO).launch {
-                saveUserToDataBase(userFromDataBase!!)
-            }
-            user.postValue(userFromDataBase)
-        }else{
-            disposable.add(userAPI.getUser(userName)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(object: DisposableSingleObserver<UserResponse>(){
-                    override fun onSuccess(t: UserResponse) {
-                        CoroutineScope(IO).launch {
-                            saveUserToDataBase(t)
-                        }
-                        user.postValue(t)
-                    }
-                    override fun onError(e: Throwable) {
-                        error.postValue(e)
-                    }
-
-                })
-            )
-        }
-    }
 
     override fun getUsersList(limit: Int) {
         CoroutineScope(IO).launch {
@@ -86,6 +49,14 @@ constructor(
         return userList
     }
 
+    override fun getUser(userName: String): LiveData<ViewResponse<UserResponse>> {
+        return if (!Utils.isOnline(mApplication)){
+            getUserFromDatabase(userName)
+        }else{
+            userAPI.getUser(userName)
+        }
+    }
+
     override fun getUserObservable(): LiveData<UserResponse> {
         return user
     }
@@ -94,13 +65,21 @@ constructor(
         return error
     }
 
-    private suspend fun saveUserToDataBase(user: UserResponse){
-        user.creationDate = Date()
-        UserLocalDataBase(mApplication).userDAO().saveUser(user)
-    }
-
-    private suspend fun getUserFromDataBase(userName: String): UserResponse{
-        return UserLocalDataBase(mApplication).userDAO().getUser(userName)
+    private fun getUserFromDatabase(userName: String): LiveData<ViewResponse<UserResponse>>{
+        val user = MutableLiveData<ViewResponse<UserResponse>>()
+        user.value = ViewResponse.loading(null)
+        var dataBaseResponse: UserResponse
+        CoroutineScope(IO).launch {
+            dataBaseResponse = UserLocalDataBase(mApplication).userDAO().getUser(userName)
+            withContext(Main){
+                if (null != dataBaseResponse){
+                    user.value = ViewResponse.success(dataBaseResponse)
+                }else{
+                    user.value = ViewResponse.error("User not found", dataBaseResponse, null)
+                }
+            }
+        }
+        return user
     }
 
     private suspend fun getLastUsers(limit: Int):List<UserResponse>{

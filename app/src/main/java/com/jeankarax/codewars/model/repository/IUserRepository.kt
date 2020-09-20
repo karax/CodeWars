@@ -2,11 +2,10 @@ package com.jeankarax.codewars.model.repository
 
 import android.app.Application
 import androidx.lifecycle.LiveData
+import com.jeankarax.codewars.model.response.ViewResponse
 import com.jeankarax.codewars.model.response.UserResponse
 
 interface IUserRepository {
-
-    fun getUser(userName: String)
 
     fun getUserObservable(): LiveData<UserResponse>
 
@@ -19,5 +18,7 @@ interface IUserRepository {
     fun getUsersList(limit: Int)
 
     fun getUsersListObservable(): LiveData<ArrayList<UserResponse>>
+
+    fun getUser(userName: String): LiveData<ViewResponse<UserResponse>>
 
 }

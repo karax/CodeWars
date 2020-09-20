@@ -1,12 +1,13 @@
 package com.jeankarax.codewars
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import com.jeankarax.codewars.model.api.APICalls
 import com.jeankarax.codewars.model.api.ChallengeAPI
 import com.jeankarax.codewars.model.api.UserAPI
-import com.jeankarax.codewars.model.response.ChallengeResponse
-import com.jeankarax.codewars.model.response.ChallengesListResponse
-import com.jeankarax.codewars.model.response.UserResponse
+import com.jeankarax.codewars.model.response.*
 import io.reactivex.Scheduler
 import io.reactivex.Single
 import io.reactivex.android.plugins.RxAndroidPlugins
@@ -22,7 +23,11 @@ import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
 import org.mockito.junit.MockitoJUnitRunner
+import retrofit2.Response
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executor
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 
 @RunWith(MockitoJUnitRunner::class)
 class ServiceTest {
@@ -61,62 +66,29 @@ class ServiceTest {
     @Test
     fun whenGetUser_andIsResponseSuccess_thenReturnUserSuccessful(){
         val userAPI = UserAPI(apiCalls)
-        val mockedUser: Single<UserResponse> = getMockedSuccessUser()
-        var testUserName = ""
-        var isLoading: Boolean = true
+        val mockedUser: LiveData<BaseApiResponse<UserResponse>> = getMockedSuccessUser()
 
         Mockito.`when`(apiCalls.getUser(userName)).thenReturn(mockedUser)
 
-        fun getUserResponse(){
+        fun getUserResponse2(){
             userAPI.getUser(userName)
-            .subscribeOn(Schedulers.newThread())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribeWith(object: DisposableSingleObserver<UserResponse>() {
-                override fun onSuccess(response: UserResponse) {
-                    isLoading = false
-                    testUserName = response.username
-                }
-
-                override fun onError(e: Throwable) {
-
-                }
-
-            })
         }
-        getUserResponse()
-        Assert.assertFalse(isLoading)
-        Assert.assertEquals(testUserName, "leeroy")
-
+        getUserResponse2()
+        Assert.assertEquals(userAPI.userLiveData.getOrAwaitValue().status, Status.SUCCESS)
     }
 
     @Test
     fun whenGetUser_andIsResponseError_thenReturnUserError(){
         val userAPI = UserAPI(apiCalls)
-        val mockedUser: Single<UserResponse> = getMockedUserError()
-        var isLoading: Boolean = true
-        var isError: Boolean = false
+        val mockedUser: LiveData<BaseApiResponse<UserResponse>> = getMockedErrorUser()
 
         Mockito.`when`(apiCalls.getUser(userName)).thenReturn(mockedUser)
 
-        fun getUserResponse(){
+        fun getUserResponse2(){
             userAPI.getUser(userName)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(object: DisposableSingleObserver<UserResponse>() {
-                    override fun onSuccess(response: UserResponse) {
-                        isLoading = false
-                    }
-                    override fun onError(e: Throwable) {
-                        isLoading = false
-                        isError = true
-                    }
-
-                })
         }
-        getUserResponse()
-        Assert.assertFalse(isLoading)
-        Assert.assertTrue(isError)
-
+        getUserResponse2()
+        Assert.assertEquals(userAPI.userLiveData.getOrAwaitValue().status, Status.ERROR)
     }
 
     @Test
@@ -302,12 +274,18 @@ class ServiceTest {
 
     }
 
+    private fun getMockedSuccessUser(): LiveData<BaseApiResponse<UserResponse>>{
+        val response = MutableLiveData<BaseApiResponse<UserResponse>>()
+        val user = UserResponse(username = "leeroy")
+        response.value = BaseApiResponse.create(Response.success(user))
+        return response
+    }
 
-
-    private fun getMockedSuccessUser(): Single<UserResponse> = Single
-        .just(UserResponse(username = "leeroy", name = "Leroy Jenkins"))
-
-    private fun getMockedUserError(): Single<UserResponse> = Single.error(Throwable())
+    private fun getMockedErrorUser(): LiveData<BaseApiResponse<UserResponse>>{
+        val response = MutableLiveData<BaseApiResponse<UserResponse>>()
+        response.value = BaseApiResponse.create(Throwable())
+        return response
+    }
 
     private fun getMockedChallenge(): Single<ChallengeResponse> = Single
         .just(ChallengeResponse(id = "12", name = "Black Temple"))
@@ -325,5 +303,30 @@ class ServiceTest {
             , data = listOf(ChallengeResponse(id = "13", name = "Ice Crown Citadel"))))
 
     private fun getMockedAuthoredChallengesError(): Single<ChallengesListResponse>?  = Single.error(Throwable())
+
+    fun <T> LiveData<T>.getOrAwaitValue(
+        time: Long = 2,
+        timeUnit: TimeUnit = TimeUnit.SECONDS
+    ): T {
+        var data: T? = null
+        val latch = CountDownLatch(1)
+        val observer = object : Observer<T> {
+            override fun onChanged(o: T?) {
+                data = o
+                latch.countDown()
+                this@getOrAwaitValue.removeObserver(this)
+            }
+        }
+
+        this.observeForever(observer)
+
+        // Don't wait indefinitely if the LiveData is not set.
+        if (!latch.await(time, timeUnit)) {
+            throw TimeoutException("LiveData value was never set.")
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        return data as T
+    }
 
 }
