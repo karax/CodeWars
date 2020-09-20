@@ -22,6 +22,9 @@
     <string name="text_error_challenges_not_found">No challenges were found</string>
     <string name="text_error_user_not_found">User not found</string>
     <string name="text_error_challenge_not_found">This challenge wasn\'t found</string>
-    <string name="text_empty_user_name_error">Please fill the user name</string>
+    <string name="text_empty_user_name_error">Please, fill the user name</string>
     <string name="label_challenge_completed_at">Completed at %s</string>
+    <string name="text_users_ordered_by_search">Ordered by: search</string>
+    <string name="text_users_ordered_by_rank">Ordered by: rank</string>
+
 </resources>

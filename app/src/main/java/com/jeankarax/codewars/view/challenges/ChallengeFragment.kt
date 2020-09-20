@@ -80,14 +80,14 @@ class ChallengeFragment : Fragment() {
         if(challenge.languages != null){
             var languages = ""
             for(language in challenge.languages!!){
-                languages = "$language "
+                languages = "$languages $language "
             }
             tv_challenge_languages.text = getString(R.string.label_challenge_languages, languages)
         }
         if (challenge.tags !=null){
             var tags = ""
             for(tag in challenge.tags!!){
-                tags = "#$tag "
+                tags = "$tags #$tag "
             }
             tv_challenge_tags.text = getString(R.string.label_challenge_tags, tags)
         }
