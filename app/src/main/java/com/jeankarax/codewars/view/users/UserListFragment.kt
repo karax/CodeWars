@@ -8,15 +8,15 @@ import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.Toast
+import android.widget.Toast.LENGTH_LONG
 import androidx.appcompat.app.AlertDialog
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.Navigation
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.jeankarax.codewars.R
+import com.jeankarax.codewars.model.response.Status
 import com.jeankarax.codewars.utils.EspressoIdlingResource
 import com.jeankarax.codewars.viewmodel.UserListViewModel
 import kotlinx.android.synthetic.main.fragment_users.*
@@ -39,9 +39,8 @@ class UserListFragment : Fragment() {
 
         buildRecyclerView()
         viewModel = ViewModelProviders.of(this).get(UserListViewModel::class.java)
-        setObservers()
         setOnClickListeners()
-        viewModel.getUsersList()
+        getUsersList()
     }
 
     override fun onResume() {
@@ -77,25 +76,6 @@ class UserListFragment : Fragment() {
         }
     }
 
-    private fun setObservers() {
-
-        viewModel.userListLiveData.observe(viewLifecycleOwner, Observer {
-                rv_users_list.apply {
-                    userListAdapter.updateUserList(it)
-                }
-        })
-
-        viewModel.loading.observe(viewLifecycleOwner, Observer { isLoading ->
-                if (isLoading) {
-                    rv_users_list.visibility = GONE
-                    progressBar.visibility = VISIBLE
-                } else {
-                    rv_users_list.visibility = VISIBLE
-                    progressBar.visibility = GONE
-                }
-        })
-    }
-
     private fun showSortMenu() {
 
         val options = arrayOf(getString(R.string.title_order_by_rank))
@@ -111,7 +91,7 @@ class UserListFragment : Fragment() {
                         tv_users_ordered_by.text = getString(R.string.text_users_ordered_by_rank)
                     }else{
                         isOrderedByRank = false
-                        viewModel.getUnsortedUserList()
+                        viewModel.getUsersList()
                         tv_users_ordered_by.text = getString(R.string.text_users_ordered_by_search)
                     }
                 }
@@ -129,28 +109,53 @@ class UserListFragment : Fragment() {
         } else {
             tv_empty_user_error.visibility = GONE
             viewModel.getUser(et_search_user_name.text.toString())
-            viewModel.userLiveData.observeOnce(viewLifecycleOwner, Observer {
-                val action =
-                    UserListFragmentDirections.actionGoToChallenges(et_search_user_name.text.toString())
-                view?.let {
-                    parentFragment?.view?.let { parentFragment ->
-                        Navigation.findNavController(parentFragment).navigate(action)
+            viewModel.userLiveData.observe(viewLifecycleOwner, Observer {
+                when(it.status){
+                    Status.LOADING -> {
+                        progressBar.visibility = VISIBLE
+                    }
+                    Status.SUCCESS -> {
+                        progressBar.visibility = GONE
+                        goToUserChallengesList()
+                    }
+                    Status.ERROR -> {
+                        progressBar.visibility = GONE
+                        Toast.makeText(context, it.message, LENGTH_LONG).show()
                     }
                 }
-                EspressoIdlingResource.decrement()
-            })
-            viewModel.errorLiveData.observeOnce(viewLifecycleOwner, Observer {
-                Toast.makeText(this.context, it, Toast.LENGTH_LONG).show()
             })
         }
     }
 
-    private fun <T> LiveData<T>.observeOnce(lifecycleOwner: LifecycleOwner, observer: Observer<T>){
-        observe(lifecycleOwner, object: Observer<T>{
-            override fun onChanged(t: T?) {
-                observer.onChanged(t)
-                removeObserver(this)
+    private fun getUsersList(){
+        viewModel.getUsersList()
+        viewModel.userListLiveData.observe(viewLifecycleOwner, Observer {
+            when(it.status){
+                Status.LOADING -> {
+                    progressBar.visibility = VISIBLE
+                }
+                Status.SUCCESS -> {
+                    progressBar.visibility = GONE
+                    rv_users_list.apply {
+                        it.data?.let { usersList -> userListAdapter.updateUserList(usersList) }
+                    }
+                }
+                Status.ERROR -> {
+                    progressBar.visibility = GONE
+                    Toast.makeText(context, it.message, LENGTH_LONG).show()
+                }
             }
         })
+    }
+
+    private fun goToUserChallengesList() {
+        val action =
+            UserListFragmentDirections.actionGoToChallenges(et_search_user_name.text.toString())
+        view?.let {
+            parentFragment?.view?.let { parentFragment ->
+                Navigation.findNavController(parentFragment).navigate(action)
+            }
+        }
+        EspressoIdlingResource.decrement()
     }
 }

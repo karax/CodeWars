@@ -1,7 +1,7 @@
 package com.jeankarax.codewars.model.di
 
+import com.jeankarax.codewars.model.api.LiveDataCallAdapterFactory
 import com.jeankarax.codewars.model.api.APICalls
-import com.jeankarax.codewars.model.api.UserAPI
 import dagger.Module
 import dagger.Provides
 import retrofit2.Retrofit
@@ -19,6 +19,7 @@ open class APICallsModule {
             .baseUrl(BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+            .addCallAdapterFactory(LiveDataCallAdapterFactory())
             .build()
             .create(APICalls::class.java)
     }

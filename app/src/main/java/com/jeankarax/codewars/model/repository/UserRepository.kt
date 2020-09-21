@@ -1,25 +1,19 @@
 package com.jeankarax.codewars.model.repository
 
 import android.app.Application
-import android.content.Context
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
+import androidx.lifecycle.MutableLiveData
+import com.jeankarax.codewars.model.response.ViewResponse
 import com.jeankarax.codewars.model.api.UserAPI
 import com.jeankarax.codewars.model.response.UserResponse
 import com.jeankarax.codewars.model.room.UserLocalDataBase
 import com.jeankarax.codewars.utils.Utils
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.observers.DisposableSingleObserver
-import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.*
 import javax.inject.Inject
 import kotlin.collections.ArrayList
 
@@ -30,85 +24,50 @@ constructor(
 ): IUserRepository
 {
     lateinit var mApplication: Application
-    private val disposable = CompositeDisposable()
-    private val user = MediatorLiveData<UserResponse>()
-    private val error = MediatorLiveData<Throwable>()
-    private val userList = MediatorLiveData<ArrayList<UserResponse>>()
-    private val isEmptyList = MediatorLiveData<Boolean>()
 
-    override fun getUser(userName: String) {
-        var userFromDataBase: UserResponse? = null
-        if (!Utils.isOnline(mApplication)){
-            CoroutineScope(IO).launch {
-                userFromDataBase = getUserFromDataBase(userName)
-            }
-        }
-        if(null != userFromDataBase){
-            CoroutineScope(IO).launch {
-                saveUserToDataBase(userFromDataBase!!)
-            }
-            user.postValue(userFromDataBase)
+    override fun getUser(userName: String): LiveData<ViewResponse<UserResponse>> {
+        return if (!Utils.isOnline(mApplication)){
+            getUserFromDatabase(userName)
         }else{
-            disposable.add(userAPI.getUser(userName)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(object: DisposableSingleObserver<UserResponse>(){
-                    override fun onSuccess(t: UserResponse) {
-                        CoroutineScope(IO).launch {
-                            saveUserToDataBase(t)
-                        }
-                        user.postValue(t)
-                    }
-                    override fun onError(e: Throwable) {
-                        error.postValue(e)
-                    }
-
-                })
-            )
+            userAPI.getUser(userName)
         }
     }
 
-    override fun getUsersList(limit: Int) {
+    override fun getUsersList(limit: Int): MutableLiveData<ViewResponse<ArrayList<UserResponse>>>{
+        return getUserListFromDataBase(limit)
+    }
+
+    private fun getUserFromDatabase(userName: String): LiveData<ViewResponse<UserResponse>>{
+        val user = MutableLiveData<ViewResponse<UserResponse>>()
+        user.value = ViewResponse.loading(null)
+        var dataBaseResponse: UserResponse
         CoroutineScope(IO).launch {
-            var userListFromDataBase: ArrayList<UserResponse> = getLastUsers(limit) as ArrayList<UserResponse>
+            dataBaseResponse = UserLocalDataBase(mApplication).userDAO().getUser(userName)
             withContext(Main){
-                if(null != userListFromDataBase){
-                    userList.postValue(userListFromDataBase)
+                if (null != dataBaseResponse){
+                    user.value = ViewResponse.success(dataBaseResponse)
                 }else{
-                    isEmptyList.postValue(true)
+                    user.value = ViewResponse.error("User not found", dataBaseResponse, null)
                 }
             }
         }
-
-    }
-
-    override fun getUsersListObservable(): LiveData<ArrayList<UserResponse>> {
-        return userList
-    }
-
-    override fun getUserObservable(): LiveData<UserResponse> {
         return user
     }
 
-    override fun getErrorObservable(): LiveData<Throwable> {
-        return error
-    }
-
-    private suspend fun saveUserToDataBase(user: UserResponse){
-        user.creationDate = Date()
-        UserLocalDataBase(mApplication).userDAO().saveUser(user)
-    }
-
-    private suspend fun getUserFromDataBase(userName: String): UserResponse{
-        return UserLocalDataBase(mApplication).userDAO().getUser(userName)
-    }
-
-    private suspend fun getLastUsers(limit: Int):List<UserResponse>{
-        return UserLocalDataBase(mApplication).userDAO().getLastUsersList(limit)
-    }
-
-    override fun clearDisposable(){
-        disposable.clear()
+    private fun getUserListFromDataBase(limit: Int): MutableLiveData<ViewResponse<ArrayList<UserResponse>>> {
+        val userList = MutableLiveData<ViewResponse<ArrayList<UserResponse>>>()
+        userList.value = ViewResponse.loading(null)
+        CoroutineScope(IO).launch {
+            var userListFromDataBase: ArrayList<UserResponse> = UserLocalDataBase(mApplication).userDAO().getLastUsersList(limit) as ArrayList<UserResponse>
+            withContext(Main){
+                if(null != userListFromDataBase){
+                    userList.value  = ViewResponse.success(userListFromDataBase)
+                }else{
+                    userList.value = ViewResponse.error("User not found", null, null)
+                }
+            }
+        }
+        return userList
     }
 
     override fun setApplicationContext(application: Application) {
