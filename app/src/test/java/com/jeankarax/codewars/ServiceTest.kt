@@ -108,6 +108,20 @@ class ServiceTest {
     }
 
     @Test
+    fun whenGetChallengesLists_andIsResponseSuccess_thenReturnChallengesSuccessful(){
+        val challengeAPI = ChallengeAPI(apiCalls)
+
+        Mockito.`when`(apiCalls.getCompletedChallenges2(userName, 1)).thenReturn(getMockedCompletedChallenges2())
+        Mockito.`when`(apiCalls.getAuthoredChallenges2(userName)).thenReturn(getMockedAuthoredChallenges2())
+
+        challengeAPI.getChallengesList(userName, 1)
+        Assert.assertEquals(challengeAPI.challengesListLiveData.getOrAwaitValue().status, Status.SUCCESS)
+        Assert.assertEquals(challengeAPI.challengesListLiveData.getOrAwaitValue().data?.get(0)?.data?.get(0)?.id, "13")
+        Assert.assertEquals(challengeAPI.challengesListLiveData.getOrAwaitValue().data?.get(1)?.data?.get(0)?.id, "11")
+
+    }
+
+    @Test
     fun whenGetCompletedChallenges_andIsResponseError_thenReturnCompletedChallengesError(){
         val challengeAPI = ChallengeAPI(apiCalls)
         var isLoading = true
@@ -252,6 +266,22 @@ class ServiceTest {
     private fun getMockedChallengeError(): LiveData<BaseApiResponse<ChallengeResponse>> {
         val response = MutableLiveData<BaseApiResponse<ChallengeResponse>>()
         response.value = BaseApiResponse.create(Throwable())
+        return response
+    }
+
+    private fun getMockedCompletedChallenges2(): LiveData<BaseApiResponse<ChallengesListResponse>> {
+        val response = MutableLiveData<BaseApiResponse<ChallengesListResponse>>()
+        val challenge = ChallengesListResponse(totalPages = 1, totalItems = null
+            , data = listOf(ChallengeResponse(id = "13", name = "Ice Crown Citadel")))
+        response.value = BaseApiResponse.create(Response.success(challenge))
+        return response
+    }
+
+    private fun getMockedAuthoredChallenges2(): LiveData<BaseApiResponse<ChallengesListResponse>> {
+        val response = MutableLiveData<BaseApiResponse<ChallengesListResponse>>()
+        val challenge = ChallengesListResponse(totalPages = 1, totalItems = null
+            , data = listOf(ChallengeResponse(id = "11", name = "Black Temple")))
+        response.value = BaseApiResponse.create(Response.success(challenge))
         return response
     }
 

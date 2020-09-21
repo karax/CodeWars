@@ -125,11 +125,13 @@ constructor(
             }))
     }
 
-    override fun getCompletedChallengesLiveData(): LiveData<ChallengesListResponse> = completedChallenges
+    override fun getChallengesList(userName: String, page: Long): LiveData<ViewResponse<List<ChallengesListResponse>>>{
+        return challengeAPI.getChallengesList(userName, page)
+    }
 
-    override fun getAllChallengesLiveData(): LiveData<MutableList<ChallengesListResponse>> = allChallenges
-
-    override fun getErrorLiveData(): LiveData<Throwable> = error
+    override fun getNextPage(userName: String, page: Long): LiveData<ViewResponse<ChallengesListResponse>> {
+        return challengeAPI.getNextPage(userName, page)
+    }
 
     private fun saveChallengesListToDataBase(challengesList: ChallengesListResponse,
                                                      userName: String, page: Long, type: String){
@@ -144,10 +146,6 @@ constructor(
     private suspend fun getChallengeListFromDataBase(userName: String, page: Long, type: String): ChallengesListResponse {
         val queryUserName = userName + type
         return UserLocalDataBase.invoke(mApplication).challengeDAO().getChallengesList(queryUserName, page)
-    }
-
-    override fun clearDisposable() {
-        disposable.clear()
     }
 
     override fun setApplicationContext(application: Application) {

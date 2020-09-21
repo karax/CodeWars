@@ -9,6 +9,12 @@ import com.jeankarax.codewars.model.di.DaggerChallengeRepositoryComponent
 import com.jeankarax.codewars.model.repository.IChallengeRepository
 import com.jeankarax.codewars.model.response.ChallengeResponse
 import com.jeankarax.codewars.model.response.ChallengesListResponse
+import com.jeankarax.codewars.model.response.Status
+import com.jeankarax.codewars.model.response.ViewResponse
+import com.jeankarax.codewars.model.room.UserLocalDataBase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.net.UnknownHostException
 import javax.inject.Inject
@@ -16,10 +22,11 @@ import javax.inject.Inject
 class ChallengesListsViewModel(application: Application): AndroidViewModel(application) {
 
 
-    val areListsOk by lazy { MutableLiveData<Boolean>() }
-    val isLoading by lazy { MutableLiveData<Boolean>() }
     val isNextPageLoadedLiveData by lazy{MutableLiveData<Boolean>()}
-    val isError by lazy { MutableLiveData<String>() }
+
+    val challengesListLiveDate by lazy { MutableLiveData<ViewResponse<List<ChallengesListResponse>>>() }
+    val nextChallengesListPageLiveData by lazy { MutableLiveData<ViewResponse<ChallengesListResponse>>() }
+
     private lateinit var auxCompletedChallengesList: MutableList<ChallengeResponse>
     private lateinit var auxAuthoredChallengeList: List<ChallengeResponse>
     private var auxListTotalPages: Long = 0
@@ -44,7 +51,6 @@ class ChallengesListsViewModel(application: Application): AndroidViewModel(appli
             completedListWithLoading.clear()
             completedListWithLoading.addAll(it[0].data as MutableList<ChallengeResponse>)
             completedListWithLoading.add(placeHolderChallenge)
-            areListsOk.value = true
         }
         else{
             completedListWithLoading.removeAt(completedListWithLoading.size-1)
@@ -57,26 +63,7 @@ class ChallengesListsViewModel(application: Application): AndroidViewModel(appli
             }
             isNextPageLoadedLiveData.value = true
         }
-        isLoading.value = false
         auxListTotalPages = it[0].totalPages!!
-    }
-
-    private val mapErrorObserver = Observer<Throwable> {
-        if(it is HttpException){
-            isError.value = application.getString(R.string.text_error_challenges_not_found)
-        }else if (it is UnknownHostException){
-            isError.value = application.getString(R.string.text_connection_error)
-            isLoading.value = false
-        }
-    }
-
-    fun getLists(userName: String){
-        auxUserName = userName
-        isLoading.value = true
-        challengeRepository.getCompletedChallenges(userName, 0, true)
-        mapLists()
-        mapError()
-        auxNextPage = 1
     }
 
     fun getNextPage() {
@@ -84,22 +71,37 @@ class ChallengesListsViewModel(application: Application): AndroidViewModel(appli
         auxNextPage++
     }
 
-    fun getLoadedCompletedList()= auxCompletedChallengesList
-
-    fun getLoadedAuthoredList() = auxAuthoredChallengeList
-
-    private fun mapLists() {
-        return challengeRepository.getAllChallengesLiveData().observeForever(mapListsObserver)
+    fun getChallengesLists(userName: String){
+        challengeRepository.getChallengesList(userName, 0).observeForever{
+            if (it.status == Status.SUCCESS){
+                CoroutineScope(Dispatchers.IO).launch {
+                    it.data?.let { challengeLists ->
+                        challengeLists[0].id = userName+"completed"
+                        challengeLists[0].pageNumber = 0
+                        challengeLists[0].type = "completed"
+                        UserLocalDataBase(getApplication()).challengeDAO().saveChallengesList(challengeLists[0])
+                        challengeLists[1].id = userName+"authored"
+                        challengeLists[1].pageNumber = 0
+                        challengeLists[1].type = "authored"
+                        UserLocalDataBase(getApplication()).challengeDAO().saveChallengesList(challengeLists[1])
+                    }
+                }
+            }
+            challengesListLiveDate.value = it
+        }
     }
 
-    private fun mapError(){
-        return challengeRepository.getErrorLiveData().observeForever(mapErrorObserver)
+    fun getNextPage2(userName: String, page: Long){
+        challengeRepository.getNextPage(userName, page).observeForever{
+            if(it.status == Status.SUCCESS){
+                CoroutineScope(Dispatchers.IO).launch {
+                    it.data?.let { completeChallengesList ->
+                        UserLocalDataBase(getApplication()).challengeDAO().saveChallengesList(completeChallengesList)
+                    }
+                }
+            }
+            nextChallengesListPageLiveData.value = it
+        }
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        challengeRepository.getAllChallengesLiveData().removeObserver(mapListsObserver)
-        challengeRepository.getErrorLiveData().removeObserver(mapErrorObserver)
-        challengeRepository.clearDisposable()
-    }
 }

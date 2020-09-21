@@ -12,6 +12,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.viewpager2.widget.ViewPager2
 import com.jeankarax.codewars.R
+import com.jeankarax.codewars.model.response.Status
 import com.jeankarax.codewars.utils.EspressoIdlingResource
 import com.jeankarax.codewars.view.Constants
 import com.jeankarax.codewars.viewmodel.ChallengesListsViewModel
@@ -35,37 +36,34 @@ class ChallengesListsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         viewModel = ViewModelProviders.of(this).get(ChallengesListsViewModel::class.java)
-        setObservers()
         arguments?.let {
             userName = ChallengesListsFragmentArgs.fromBundle(it).userName
         }
-        viewModel.getLists(userName)
-        mt_challenges_toolbar.title = getString(R.string.title_challenges_toolbar, userName)
-        setNavBottomBarListeners()
 
-    }
-
-    private fun setObservers() {
-        viewModel.areListsOk.observe(viewLifecycleOwner, Observer {
-            challengesPageAdapter = ChallengesPageAdapter(this.childFragmentManager, lifecycle, viewModel)
-            vp_lists.adapter = challengesPageAdapter
-        })
-
-        viewModel.isLoading.observe(viewLifecycleOwner, Observer {
-            if(it){
-                vp_lists.visibility = GONE
-                pb_challenges_call.visibility = VISIBLE
-            }else{
-                vp_lists.visibility = VISIBLE
-                pb_challenges_call.visibility = GONE
+        viewModel.challengesListLiveDate.observe(viewLifecycleOwner, Observer {response ->
+            when(response.status){
+                Status.SUCCESS -> {
+                    vp_lists.visibility = VISIBLE
+                    pb_challenges_call.visibility = GONE
+                    challengesPageAdapter = ChallengesPageAdapter(this.childFragmentManager,
+                        lifecycle, viewModel, response.data)
+                    vp_lists.adapter = challengesPageAdapter
+                }
+                Status.ERROR ->{
+                    vp_lists.visibility = GONE
+                    pb_challenges_call.visibility = GONE
+                    Toast.makeText(context, response.message, Toast.LENGTH_LONG).show()
+                }
+                Status.LOADING -> {
+                    vp_lists.visibility = GONE
+                    pb_challenges_call.visibility = VISIBLE
+                }
             }
         })
 
-        viewModel.isError.observe(viewLifecycleOwner, Observer {
-            Toast.makeText(this.context, it, Toast.LENGTH_LONG).show()
-            vp_lists.visibility = GONE
-            bottom_toolbar.visibility = GONE
-        })
+        viewModel.getChallengesLists(userName)
+        mt_challenges_toolbar.title = getString(R.string.title_challenges_toolbar, userName)
+        setNavBottomBarListeners()
 
     }
 
