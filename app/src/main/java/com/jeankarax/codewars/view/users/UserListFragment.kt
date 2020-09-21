@@ -39,9 +39,8 @@ class UserListFragment : Fragment() {
 
         buildRecyclerView()
         viewModel = ViewModelProviders.of(this).get(UserListViewModel::class.java)
-        setObservers()
         setOnClickListeners()
-        viewModel.getUsersList()
+        getUsersList()
     }
 
     override fun onResume() {
@@ -77,15 +76,6 @@ class UserListFragment : Fragment() {
         }
     }
 
-    private fun setObservers() {
-
-        viewModel.userListLiveData.observe(viewLifecycleOwner, Observer {
-                rv_users_list.apply {
-                    userListAdapter.updateUserList(it)
-                }
-        })
-    }
-
     private fun showSortMenu() {
 
         val options = arrayOf(getString(R.string.title_order_by_rank))
@@ -101,7 +91,7 @@ class UserListFragment : Fragment() {
                         tv_users_ordered_by.text = getString(R.string.text_users_ordered_by_rank)
                     }else{
                         isOrderedByRank = false
-                        viewModel.getUnsortedUserList()
+                        viewModel.getUsersList()
                         tv_users_ordered_by.text = getString(R.string.text_users_ordered_by_search)
                     }
                 }
@@ -135,6 +125,27 @@ class UserListFragment : Fragment() {
                 }
             })
         }
+    }
+
+    private fun getUsersList(){
+        viewModel.getUsersList()
+        viewModel.userListLiveData.observe(viewLifecycleOwner, Observer {
+            when(it.status){
+                Status.LOADING -> {
+                    progressBar.visibility = VISIBLE
+                }
+                Status.SUCCESS -> {
+                    progressBar.visibility = GONE
+                    rv_users_list.apply {
+                        it.data?.let { usersList -> userListAdapter.updateUserList(usersList) }
+                    }
+                }
+                Status.ERROR -> {
+                    progressBar.visibility = GONE
+                    Toast.makeText(context, it.message, LENGTH_LONG).show()
+                }
+            }
+        })
     }
 
     private fun goToUserChallengesList() {
