@@ -12,5 +12,5 @@ interface IUserRepository {
 
     fun getUser(userName: String): LiveData<ViewResponse<UserResponse>>
 
-    fun getUsersList(limit: Int): MutableLiveData<ViewResponse<ArrayList<UserResponse>>>
+    fun getUsersList(limit: Int): LiveData<ViewResponse<ArrayList<UserResponse>>>
 }

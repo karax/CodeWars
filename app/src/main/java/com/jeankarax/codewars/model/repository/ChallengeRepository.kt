@@ -7,6 +7,7 @@ import androidx.lifecycle.MutableLiveData
 import com.jeankarax.codewars.model.api.ChallengeAPI
 import com.jeankarax.codewars.model.response.ChallengeResponse
 import com.jeankarax.codewars.model.response.ChallengesListResponse
+import com.jeankarax.codewars.model.response.ViewResponse
 import com.jeankarax.codewars.model.room.UserLocalDataBase
 import com.jeankarax.codewars.utils.Utils
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -17,7 +18,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import javax.inject.Inject
-import kotlin.coroutines.CoroutineContext
 
 class ChallengeRepository
 @Inject
@@ -30,36 +30,32 @@ constructor(
     private val disposable = CompositeDisposable()
     private val allChallenges = MutableLiveData<MutableList<ChallengesListResponse>>()
     private val completedChallenges = MutableLiveData<ChallengesListResponse>()
-    private val challenge = MutableLiveData<ChallengeResponse>()
     private val error = MediatorLiveData<Throwable>()
     private var auxAllChallengesList = mutableListOf<ChallengesListResponse>()
 
-    override fun getChallenge(id: String) {
-        if(!Utils.isOnline(mApplication)){
-            var challengeResponse: ChallengeResponse
-            CoroutineScope(IO).launch {
-                challengeResponse = UserLocalDataBase(mApplication).challengeDAO().getChallenge(id)
-                withContext(Main){
-                    challenge.postValue(challengeResponse)
+    override fun getChallenge(id: String): LiveData<ViewResponse<ChallengeResponse>>{
+        return if (!Utils.isOnline(mApplication)){
+            getChallengeFromDataBase(id)
+        }else{
+            challengeAPI.getChallenge(id)
+        }
+    }
 
+    private fun getChallengeFromDataBase(id: String): LiveData<ViewResponse<ChallengeResponse>> {
+        val challenge = MutableLiveData<ViewResponse<ChallengeResponse>>()
+        challenge.value = ViewResponse.loading(null)
+        var dataBaseResponse: ChallengeResponse
+        CoroutineScope(IO).launch {
+            dataBaseResponse = UserLocalDataBase(mApplication).challengeDAO().getChallenge(id)
+            withContext(Main){
+                if(null != dataBaseResponse){
+                    challenge.value = ViewResponse.success(dataBaseResponse)
+                }else{
+                    challenge.value = ViewResponse.error("Challenge not found", dataBaseResponse, null)
                 }
             }
-        }else{
-        disposable.add(challengeAPI.getChallenge(id)
-            .subscribeOn(Schedulers.newThread())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribeWith(object: DisposableSingleObserver<ChallengeResponse>(){
-                override fun onSuccess(t: ChallengeResponse) {
-                    saveChallengeToDataBase(t)
-                    challenge.postValue(t)
-                }
-
-                override fun onError(e: Throwable) {
-                    error.postValue(e)
-                }
-
-            }))
         }
+        return challenge
     }
 
     override fun getCompletedChallenges(userName: String, page: Long, isFirstCall: Boolean) {
@@ -129,19 +125,11 @@ constructor(
             }))
     }
 
-    override fun getChallengeLiveData(): LiveData<ChallengeResponse> = challenge
-
     override fun getCompletedChallengesLiveData(): LiveData<ChallengesListResponse> = completedChallenges
 
     override fun getAllChallengesLiveData(): LiveData<MutableList<ChallengesListResponse>> = allChallenges
 
     override fun getErrorLiveData(): LiveData<Throwable> = error
-
-    private fun saveChallengeToDataBase(challenge: ChallengeResponse) {
-        CoroutineScope(IO).launch {
-            UserLocalDataBase(mApplication).challengeDAO().saveChallenge(challenge)
-        }
-    }
 
     private fun saveChallengesListToDataBase(challengesList: ChallengesListResponse,
                                                      userName: String, page: Long, type: String){

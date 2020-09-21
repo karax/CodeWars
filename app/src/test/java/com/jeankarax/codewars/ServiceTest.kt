@@ -70,11 +70,9 @@ class ServiceTest {
 
         Mockito.`when`(apiCalls.getUser(userName)).thenReturn(mockedUser)
 
-        fun getUserResponse2(){
-            userAPI.getUser(userName)
-        }
-        getUserResponse2()
+        userAPI.getUser(userName)
         Assert.assertEquals(userAPI.userLiveData.getOrAwaitValue().status, Status.SUCCESS)
+        Assert.assertEquals(userAPI.userLiveData.getOrAwaitValue().data?.username, userName)
     }
 
     @Test
@@ -84,72 +82,29 @@ class ServiceTest {
 
         Mockito.`when`(apiCalls.getUser(userName)).thenReturn(mockedUser)
 
-        fun getUserResponse2(){
-            userAPI.getUser(userName)
-        }
-        getUserResponse2()
+        userAPI.getUser(userName)
         Assert.assertEquals(userAPI.userLiveData.getOrAwaitValue().status, Status.ERROR)
-    }
-
-    @Test
-    fun whenGetChallenge_andIsResponseError_thenReturnChallengeError(){
-        val challengeAPI = ChallengeAPI(apiCalls)
-        var isLoading = true
-        var isError = false
-
-        Mockito.`when`(apiCalls.getChallenge("12")).thenReturn(getMockedChallengeError())
-
-        fun getChallengeResponse() {
-            challengeAPI.getChallenge("12")
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(object : DisposableSingleObserver<ChallengeResponse>() {
-                    override fun onSuccess(t: ChallengeResponse) {
-                        isLoading = false
-                    }
-                    override fun onError(e: Throwable) {
-                        isLoading = false
-                        isError = true
-                    }
-
-                })
-        }
-
-        getChallengeResponse()
-        Assert.assertTrue(isError)
-        Assert.assertFalse(isLoading)
-
     }
 
     @Test
     fun whenGetChallenge_andIsResponseSuccess_thenReturnChallengeSuccessful(){
         val challengeAPI = ChallengeAPI(apiCalls)
-        var isLoading = true
-        var testChallengeId = ""
 
         Mockito.`when`(apiCalls.getChallenge("12")).thenReturn(getMockedChallenge())
 
-        fun getChallengeResponse() {
-            challengeAPI.getChallenge("12")
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(object : DisposableSingleObserver<ChallengeResponse>() {
-                    override fun onSuccess(t: ChallengeResponse) {
-                        isLoading = false
-                        testChallengeId = t.id
-                    }
+        challengeAPI.getChallenge("12")
+        Assert.assertEquals(challengeAPI.challengeLiveData.getOrAwaitValue().status, Status.SUCCESS)
+        Assert.assertEquals(challengeAPI.challengeLiveData.getOrAwaitValue().data?.id, "12")
+    }
 
-                    override fun onError(e: Throwable) {
+    @Test
+    fun whenGetChallenge_andIsResponseError_thenReturnChallengeError(){
+        val challengeAPI = ChallengeAPI(apiCalls)
 
-                    }
+        Mockito.`when`(apiCalls.getChallenge("12")).thenReturn(getMockedChallengeError())
 
-                })
-        }
-
-        getChallengeResponse()
-        Assert.assertEquals(testChallengeId, "12")
-        Assert.assertFalse(isLoading)
-
+        challengeAPI.getChallenge("12")
+        Assert.assertEquals(challengeAPI.challengeLiveData.getOrAwaitValue().status, Status.ERROR)
     }
 
     @Test
@@ -276,7 +231,7 @@ class ServiceTest {
 
     private fun getMockedSuccessUser(): LiveData<BaseApiResponse<UserResponse>>{
         val response = MutableLiveData<BaseApiResponse<UserResponse>>()
-        val user = UserResponse(username = "leeroy")
+        val user = UserResponse(username = "leeeroy")
         response.value = BaseApiResponse.create(Response.success(user))
         return response
     }
@@ -287,10 +242,18 @@ class ServiceTest {
         return response
     }
 
-    private fun getMockedChallenge(): Single<ChallengeResponse> = Single
-        .just(ChallengeResponse(id = "12", name = "Black Temple"))
+    private fun getMockedChallenge(): LiveData<BaseApiResponse<ChallengeResponse>>{
+        val response = MutableLiveData<BaseApiResponse<ChallengeResponse>>()
+        val challenge = ChallengeResponse(id = "12", name = "Black Temple")
+        response.value = BaseApiResponse.create(Response.success(challenge))
+        return response
+    }
 
-    private fun getMockedChallengeError(): Single<ChallengeResponse> = Single.error(Throwable())
+    private fun getMockedChallengeError(): LiveData<BaseApiResponse<ChallengeResponse>> {
+        val response = MutableLiveData<BaseApiResponse<ChallengeResponse>>()
+        response.value = BaseApiResponse.create(Throwable())
+        return response
+    }
 
     private fun getMockedCompletedChallenges(): Single<ChallengesListResponse>? =
         Single.just(ChallengesListResponse(totalPages = 1, totalItems = null
