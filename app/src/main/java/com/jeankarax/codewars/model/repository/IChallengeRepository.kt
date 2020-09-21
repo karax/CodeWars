@@ -4,16 +4,13 @@ import android.app.Application
 import androidx.lifecycle.LiveData
 import com.jeankarax.codewars.model.response.ChallengeResponse
 import com.jeankarax.codewars.model.response.ChallengesListResponse
+import com.jeankarax.codewars.model.response.ViewResponse
 
 interface IChallengeRepository {
-
-    fun getChallenge(id: String)
 
     fun getCompletedChallenges(userName: String, page: Long, isFirstCall: Boolean)
 
     fun getAuthoredChallenges(userName: String)
-
-    fun getChallengeLiveData(): LiveData<ChallengeResponse>
 
     fun getCompletedChallengesLiveData(): LiveData<ChallengesListResponse>
 
@@ -25,4 +22,5 @@ interface IChallengeRepository {
 
     fun setApplicationContext(application: Application)
 
+    fun getChallenge(id: String): LiveData<ViewResponse<ChallengeResponse>>
 }

@@ -9,18 +9,15 @@ import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.LiveData
+import android.widget.Toast.LENGTH_LONG
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.jeankarax.codewars.R
 import com.jeankarax.codewars.model.response.ChallengeResponse
+import com.jeankarax.codewars.model.response.Status
 import com.jeankarax.codewars.utils.EspressoIdlingResource
-import com.jeankarax.codewars.view.Constants
 import com.jeankarax.codewars.viewmodel.ChallengeViewModel
-import com.jeankarax.codewars.viewmodel.ChallengesListsViewModel
 import kotlinx.android.synthetic.main.fragment_challenge.*
-import kotlinx.android.synthetic.main.fragment_challenges.*
 
 class ChallengeFragment : Fragment() {
 
@@ -39,33 +36,27 @@ class ChallengeFragment : Fragment() {
 
         viewModel = ViewModelProviders.of(this).get(ChallengeViewModel::class.java)
 
-        setObservers()
-
         arguments?.let{
+            viewModel.challengeLiveData.observe(viewLifecycleOwner, Observer { response ->
+                when(response.status){
+                    Status.SUCCESS -> {
+                        pb_challenge_loading.visibility = GONE
+                        challenge = response.data!!
+                        bindComponents()
+                    }
+                    Status.ERROR -> {
+                        pb_challenge_loading.visibility = GONE
+                        Toast.makeText(context, "Error", LENGTH_LONG).show()
+                    }
+                    Status.LOADING -> {
+                        pb_challenge_loading.visibility = VISIBLE
+                    }
+                }
+            })
             viewModel.getChallenge(ChallengeFragmentArgs.fromBundle(it).challengeId)
         }
 
 
-    }
-
-    private fun setObservers() {
-        viewModel.challengeLiveData.observe(viewLifecycleOwner, Observer {
-            challenge = it
-            bindComponents()
-        })
-        viewModel.isError.observe(viewLifecycleOwner, Observer {
-            sv_challenge_details.visibility = GONE
-            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
-        })
-        viewModel.isLoading.observe(viewLifecycleOwner, Observer {
-            if (it){
-                sv_challenge_details.visibility = GONE
-                pb_challenge_loading.visibility = VISIBLE
-            }else{
-                sv_challenge_details.visibility = VISIBLE
-                pb_challenge_loading.visibility = GONE
-            }
-        })
     }
 
     private fun bindComponents() {
@@ -92,14 +83,5 @@ class ChallengeFragment : Fragment() {
             tv_challenge_tags.text = getString(R.string.label_challenge_tags, tags)
         }
         EspressoIdlingResource.decrement()
-    }
-
-    private fun <T> LiveData<T>.observeOnce(lifecycleOwner: LifecycleOwner, observer: Observer<T>){
-        observe(lifecycleOwner, object: Observer<T>{
-            override fun onChanged(t: T?) {
-                observer.onChanged(t)
-                removeObserver(this)
-            }
-        })
     }
 }

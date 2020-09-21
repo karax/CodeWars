@@ -33,7 +33,7 @@ constructor(
         }
     }
 
-    override fun getUsersList(limit: Int): MutableLiveData<ViewResponse<ArrayList<UserResponse>>>{
+    override fun getUsersList(limit: Int): LiveData<ViewResponse<ArrayList<UserResponse>>>{
         return getUserListFromDataBase(limit)
     }
 
@@ -54,7 +54,7 @@ constructor(
         return user
     }
 
-    private fun getUserListFromDataBase(limit: Int): MutableLiveData<ViewResponse<ArrayList<UserResponse>>> {
+    private fun getUserListFromDataBase(limit: Int): LiveData<ViewResponse<ArrayList<UserResponse>>> {
         val userList = MutableLiveData<ViewResponse<ArrayList<UserResponse>>>()
         userList.value = ViewResponse.loading(null)
         CoroutineScope(IO).launch {

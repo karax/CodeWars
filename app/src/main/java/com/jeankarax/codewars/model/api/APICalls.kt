@@ -25,6 +25,6 @@ interface APICalls {
     fun getAuthoredChallenges(@Path("username") username: String): Single<ChallengesListResponse>
 
     @GET("code-challenges/{id}")
-    fun getChallenge(@Path("id") id: String?): Single<ChallengeResponse>
+    fun getChallenge(@Path("id") id: String?): LiveData<BaseApiResponse<ChallengeResponse>>
 
 }
