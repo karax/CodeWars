@@ -74,17 +74,17 @@ class ChallengeListAdapter(
             populateItems(holder, position)
         }else if(holder is LoadMoreViewHolder){
             EspressoIdlingResource.increment()
-            viewModel.getNextPage().observeOnce(mParentFragment.viewLifecycleOwner, Observer {
-                when(it.status){
+            viewModel.getNextPage().observeOnce(mParentFragment.viewLifecycleOwner, Observer { response ->
+                when(response.status){
                     Status.SUCCESS -> {
                         Handler().postDelayed({
                             auxChallengesList.removeAt(auxChallengesList.size-1)
-                            viewModel.auxCompletedList.data?.let { challengesList ->
-                                auxChallengesList.addAll(
-                                    challengesList
-                                )
-                            }
-                            if (viewModel.auxCompletedList.pageNumber!! <= challengeList.totalPages!!){
+                            response.data?.data?.let { it ->
+                                    auxChallengesList.addAll(
+                                        it
+                                    )
+                                }
+                            if (response.data?.pageNumber!! <= challengeList.totalPages!!){
                                 auxChallengesList.add(placeHolderChallenge)
                             }else{
                                 auxChallengesList.add(placeHolderLastChallenge)
@@ -94,7 +94,7 @@ class ChallengeListAdapter(
                         }, 3000)
                     }
                     Status.ERROR -> {
-                        Toast.makeText(mParentFragment.context, it.message, Toast.LENGTH_LONG).show()}
+                        Toast.makeText(mParentFragment.context, response.message, Toast.LENGTH_LONG).show()}
                 }
             })
             holder.view.pb_load_more.visibility = VISIBLE
