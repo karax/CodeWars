@@ -18,7 +18,6 @@ class ChallengesListsViewModel(application: Application): AndroidViewModel(appli
 
     private var auxNextPage: Long = 0
     private var auxUserName: String =""
-    var auxCompletedList: ChallengesListResponse = ChallengesListResponse()
 
     @Inject
     lateinit var challengeRepository: IChallengeRepository
@@ -58,9 +57,9 @@ class ChallengesListsViewModel(application: Application): AndroidViewModel(appli
         }
     }
 
-    fun getNextPage(): LiveData<ViewResponse<Boolean>>{
+    fun getNextPage(): LiveData<ViewResponse<ChallengesListResponse>>{
         return Transformations.switchMap(challengeRepository.getNextPage(auxUserName, auxNextPage)){ repositoryResponse ->
-            object: LiveData<ViewResponse<Boolean>>(){
+            object: LiveData<ViewResponse<ChallengesListResponse>>(){
                 override fun onActive() {
                     super.onActive()
                     if (repositoryResponse.status == Status.SUCCESS){
@@ -72,10 +71,9 @@ class ChallengesListsViewModel(application: Application): AndroidViewModel(appli
                                 UserLocalDataBase(getApplication()).challengeDAO().saveChallengesList(completeChallengesList)
                             }
                         }
-                        auxCompletedList = repositoryResponse.data!!
                         auxNextPage++
                     }
-                    value = ViewResponse.success(true)
+                    value = repositoryResponse
                 }
             }
         }
