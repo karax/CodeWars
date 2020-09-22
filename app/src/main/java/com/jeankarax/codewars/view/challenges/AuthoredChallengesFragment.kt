@@ -32,7 +32,7 @@ class AuthoredChallengesFragment(
     }
 
     private fun buildRecyclerView() {
-        challengeListAdapter = ChallengeListAdapter(authoredChallengesList.data!!, viewModel,
+        challengeListAdapter = ChallengeListAdapter(authoredChallengesList, viewModel,
             parentFragment as ChallengesListsFragment
         )
         rv_authored_challenges_list.layoutManager = LinearLayoutManager(context)

@@ -35,7 +35,7 @@ class CompletedChallengesFragment(
     }
 
     private fun buildRecyclerView() {
-        challengeListAdapter = ChallengeListAdapter(completedChallengesList.data!!,
+        challengeListAdapter = ChallengeListAdapter(completedChallengesList,
             viewModel,
             parentFragment as ChallengesListsFragment)
         rv_completed_challenges_list.layoutManager = LinearLayoutManager(context)

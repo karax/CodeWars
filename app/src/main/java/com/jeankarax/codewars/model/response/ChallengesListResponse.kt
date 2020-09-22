@@ -15,5 +15,5 @@ data class ChallengesListResponse (
     var type: String? = "",
     var totalPages: Long? = null,
     var totalItems: Long? = null,
-    var data: List<ChallengeResponse>? = null
+    var data: MutableList<ChallengeResponse>? = null
 )
