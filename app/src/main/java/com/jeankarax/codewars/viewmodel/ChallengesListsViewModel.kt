@@ -1,31 +1,24 @@
 package com.jeankarax.codewars.viewmodel
 
 import android.app.Application
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
-import com.jeankarax.codewars.R
+import androidx.lifecycle.*
 import com.jeankarax.codewars.model.di.DaggerChallengeRepositoryComponent
 import com.jeankarax.codewars.model.repository.IChallengeRepository
-import com.jeankarax.codewars.model.response.ChallengeResponse
 import com.jeankarax.codewars.model.response.ChallengesListResponse
-import retrofit2.HttpException
-import java.net.UnknownHostException
+import com.jeankarax.codewars.model.response.Status
+import com.jeankarax.codewars.model.response.ViewResponse
+import com.jeankarax.codewars.model.room.UserLocalDataBase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class ChallengesListsViewModel(application: Application): AndroidViewModel(application) {
 
 
-    val areListsOk by lazy { MutableLiveData<Boolean>() }
-    val isLoading by lazy { MutableLiveData<Boolean>() }
-    val isNextPageLoadedLiveData by lazy{MutableLiveData<Boolean>()}
-    val isError by lazy { MutableLiveData<String>() }
-    private lateinit var auxCompletedChallengesList: MutableList<ChallengeResponse>
-    private lateinit var auxAuthoredChallengeList: List<ChallengeResponse>
-    private var auxListTotalPages: Long = 0
-    private var auxNextPage: Long = 1
+    private var auxNextPage: Long = 0
     private var auxUserName: String =""
-    var completedListWithLoading: MutableList<ChallengeResponse> = mutableListOf()
+    var auxCompletedList: ChallengesListResponse = ChallengesListResponse()
 
     @Inject
     lateinit var challengeRepository: IChallengeRepository
@@ -33,73 +26,59 @@ class ChallengesListsViewModel(application: Application): AndroidViewModel(appli
     init {
         DaggerChallengeRepositoryComponent.create().injectInChallengeListsViewModel(this)
         challengeRepository.setApplicationContext(getApplication())
-        completedListWithLoading = mutableListOf()
     }
 
-    private val mapListsObserver = Observer<List<ChallengesListResponse>>{
-        val placeHolderChallenge = ChallengeResponse("placeholder")
-        auxCompletedChallengesList = completedListWithLoading
-        auxAuthoredChallengeList = it[1].data!!
-        if(auxNextPage == 1.toLong()){
-            completedListWithLoading.clear()
-            completedListWithLoading.addAll(it[0].data as MutableList<ChallengeResponse>)
-            completedListWithLoading.add(placeHolderChallenge)
-            areListsOk.value = true
-        }
-        else{
-            completedListWithLoading.removeAt(completedListWithLoading.size-1)
-            completedListWithLoading.addAll(it[0].data as MutableList<ChallengeResponse>)
-            if(auxNextPage <= auxListTotalPages){
-                completedListWithLoading.add(placeHolderChallenge)
-            }else{
-                val placeHolderLastChallenge = ChallengeResponse("lastItem")
-                completedListWithLoading.add(placeHolderLastChallenge)
+    fun getChallengesLists(userName: String): LiveData<ViewResponse<List<ChallengesListResponse>>> {
+        return Transformations.switchMap(challengeRepository.getChallengesList(userName, 0)){ repositoryResponse ->
+            object: LiveData<ViewResponse<List<ChallengesListResponse>>>(){
+                override fun onActive() {
+                    super.onActive()
+                    auxUserName = userName
+                    when(repositoryResponse.status){
+                        Status.SUCCESS -> {
+                            auxNextPage++
+                            repositoryResponse.data?.get(0)!!.id = auxUserName+"completed"
+                            repositoryResponse.data[0].pageNumber = 0
+                            repositoryResponse.data[0].type = "completed"
+
+                            repositoryResponse.data[1].id = auxUserName+"authored"
+                            repositoryResponse.data[1].pageNumber = 0
+                            repositoryResponse.data[1].type = "authored"
+                            CoroutineScope(Dispatchers.IO).launch {
+                                UserLocalDataBase(getApplication()).challengeDAO().saveChallengesList(repositoryResponse.data[0])
+                            }
+                            CoroutineScope(Dispatchers.IO).launch {
+                                UserLocalDataBase(getApplication()).challengeDAO().saveChallengesList(repositoryResponse.data[1])
+                            }
+                        }
+                    }
+                    value = repositoryResponse
+                }
             }
-            isNextPageLoadedLiveData.value = true
-        }
-        isLoading.value = false
-        auxListTotalPages = it[0].totalPages!!
-    }
-
-    private val mapErrorObserver = Observer<Throwable> {
-        if(it is HttpException){
-            isError.value = application.getString(R.string.text_error_challenges_not_found)
-        }else if (it is UnknownHostException){
-            isError.value = application.getString(R.string.text_connection_error)
-            isLoading.value = false
         }
     }
 
-    fun getLists(userName: String){
-        auxUserName = userName
-        isLoading.value = true
-        challengeRepository.getCompletedChallenges(userName, 0, true)
-        mapLists()
-        mapError()
-        auxNextPage = 1
+    fun getNextPage(): LiveData<ViewResponse<Boolean>>{
+        return Transformations.switchMap(challengeRepository.getNextPage(auxUserName, auxNextPage)){ repositoryResponse ->
+            object: LiveData<ViewResponse<Boolean>>(){
+                override fun onActive() {
+                    super.onActive()
+                    if (repositoryResponse.status == Status.SUCCESS){
+                        repositoryResponse.data?.id = auxUserName+"completed"
+                        repositoryResponse.data?.pageNumber = auxNextPage
+                        repositoryResponse.data?.type = "completed"
+                        CoroutineScope(Dispatchers.IO).launch {
+                            repositoryResponse.data?.let { completeChallengesList ->
+                                UserLocalDataBase(getApplication()).challengeDAO().saveChallengesList(completeChallengesList)
+                            }
+                        }
+                        auxCompletedList = repositoryResponse.data!!
+                        auxNextPage++
+                    }
+                    value = ViewResponse.success(true)
+                }
+            }
+        }
     }
 
-    fun getNextPage() {
-        challengeRepository.getCompletedChallenges(auxUserName, auxNextPage, false)
-        auxNextPage++
-    }
-
-    fun getLoadedCompletedList()= auxCompletedChallengesList
-
-    fun getLoadedAuthoredList() = auxAuthoredChallengeList
-
-    private fun mapLists() {
-        return challengeRepository.getAllChallengesLiveData().observeForever(mapListsObserver)
-    }
-
-    private fun mapError(){
-        return challengeRepository.getErrorLiveData().observeForever(mapErrorObserver)
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        challengeRepository.getAllChallengesLiveData().removeObserver(mapListsObserver)
-        challengeRepository.getErrorLiveData().removeObserver(mapErrorObserver)
-        challengeRepository.clearDisposable()
-    }
 }

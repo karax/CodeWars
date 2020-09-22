@@ -18,11 +18,11 @@ interface APICalls {
     @GET("users/{username}/code-challenges/completed")
     fun getCompletedChallenges(
         @Path("username") username: String,
-        @Query("page") page: Int
-    ): Single<ChallengesListResponse>
+        @Query("page") page: Long
+    ): LiveData<BaseApiResponse<ChallengesListResponse>>
 
     @GET("users/{username}/code-challenges/authored")
-    fun getAuthoredChallenges(@Path("username") username: String): Single<ChallengesListResponse>
+    fun getAuthoredChallenges(@Path("username") username: String): LiveData<BaseApiResponse<ChallengesListResponse>>
 
     @GET("code-challenges/{id}")
     fun getChallenge(@Path("id") id: String?): LiveData<BaseApiResponse<ChallengeResponse>>

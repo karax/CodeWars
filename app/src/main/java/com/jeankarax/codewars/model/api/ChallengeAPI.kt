@@ -12,10 +12,42 @@ constructor(
 ){
 
     val challengeLiveData = MediatorLiveData<ViewResponse<ChallengeResponse>>()
+    val challengesListLiveData = MediatorLiveData<ViewResponse<List<ChallengesListResponse>>>()
+    private val nextPageLiveData = MediatorLiveData<ViewResponse<ChallengesListResponse>>()
 
-    fun getCompletedChallenges(userName: String, page: Int) = apiCalls.getCompletedChallenges(userName, page)
-
-    fun getAuthoredChallenges(userName: String) = apiCalls.getAuthoredChallenges(userName)
+    fun getChallengesList(userName: String, page: Long): LiveData<ViewResponse<List<ChallengesListResponse>>>{
+        challengesListLiveData.value = ViewResponse.loading(null)
+        val auxListResponse: MutableList<ChallengesListResponse> = mutableListOf(
+            ChallengesListResponse(), ChallengesListResponse()
+        )
+        challengesListLiveData.addSource(apiCalls.getCompletedChallenges(userName, page)){ response ->
+            when(response){
+                is BaseApiSuccessResponse -> {
+                    auxListResponse[0] = response.body
+                    if (!auxListResponse[1].data.isNullOrEmpty()){
+                        challengesListLiveData.value = ViewResponse.success(auxListResponse)
+                    }
+                }
+                is BaseApiErrorResponse -> {
+                    challengesListLiveData.value = ViewResponse.error(response.errorMessage, null, response.throwable)
+                }
+            }
+        }
+        challengesListLiveData.addSource(apiCalls.getAuthoredChallenges(userName)){ response ->
+            when(response){
+                is BaseApiSuccessResponse -> {
+                    auxListResponse[1] = response.body
+                    if (!auxListResponse[0].data.isNullOrEmpty()){
+                        challengesListLiveData.value = ViewResponse.success(auxListResponse)
+                    }
+                }
+                is BaseApiErrorResponse -> {
+                    challengesListLiveData.value = ViewResponse.error(response.errorMessage, null, response.throwable)
+                }
+            }
+        }
+        return challengesListLiveData
+    }
 
     fun getChallenge(id: String): LiveData<ViewResponse<ChallengeResponse>>{
         challengeLiveData.value = ViewResponse.loading(null)
@@ -30,6 +62,20 @@ constructor(
             }
         }
         return challengeLiveData
+    }
+
+    fun getNextPage(userName: String, page: Long): LiveData<ViewResponse<ChallengesListResponse>> {
+        nextPageLiveData.addSource(apiCalls.getCompletedChallenges(userName, page)){ response ->
+            when(response){
+                is BaseApiSuccessResponse -> {
+                    nextPageLiveData.value = ViewResponse.success(response.body)
+                }
+                is BaseApiErrorResponse -> {
+                    nextPageLiveData.value = ViewResponse.error(response.errorMessage, null, response.throwable)
+                }
+            }
+        }
+        return nextPageLiveData
     }
 
 }

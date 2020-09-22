@@ -37,28 +37,25 @@ class ChallengeFragment : Fragment() {
         viewModel = ViewModelProviders.of(this).get(ChallengeViewModel::class.java)
 
         arguments?.let{
-            viewModel.challengeLiveData.observe(viewLifecycleOwner, Observer { response ->
-                when(response.status){
-                    Status.SUCCESS -> {
-                        pb_challenge_loading.visibility = GONE
-                        challenge = response.data!!
-                        bindComponents()
+            viewModel.getChallenge(ChallengeFragmentArgs.fromBundle(it).challengeId).observe(viewLifecycleOwner,
+                Observer { response ->
+                    when(response.status){
+                        Status.SUCCESS -> {
+                            pb_challenge_loading.visibility = GONE
+                            challenge = response.data!!
+                            bindComponents()
+                        }
+                        Status.ERROR -> {
+                            pb_challenge_loading.visibility = GONE
+                            Toast.makeText(context, "Error", LENGTH_LONG).show()
+                        }
+                        Status.LOADING -> {
+                            pb_challenge_loading.visibility = VISIBLE
+                        }
                     }
-                    Status.ERROR -> {
-                        pb_challenge_loading.visibility = GONE
-                        Toast.makeText(context, "Error", LENGTH_LONG).show()
-                    }
-                    Status.LOADING -> {
-                        pb_challenge_loading.visibility = VISIBLE
-                    }
-                }
-            })
-            viewModel.getChallenge(ChallengeFragmentArgs.fromBundle(it).challengeId)
+                })
         }
-
-
     }
-
     private fun bindComponents() {
         tv_challenge_title.text = challenge.name
         tv_challenge_created_by.text = getString(R.string.label_challenge_created_by, challenge.createdBy?.username)

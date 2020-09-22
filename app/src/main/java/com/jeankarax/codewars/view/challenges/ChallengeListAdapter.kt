@@ -5,11 +5,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.View.VISIBLE
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.navigation.Navigation
 import androidx.recyclerview.widget.RecyclerView
 import com.jeankarax.codewars.R
 import com.jeankarax.codewars.model.response.ChallengeResponse
+import com.jeankarax.codewars.model.response.ChallengesListResponse
+import com.jeankarax.codewars.model.response.Status
 import com.jeankarax.codewars.utils.EspressoIdlingResource
 import com.jeankarax.codewars.viewmodel.ChallengesListsViewModel
 import kotlinx.android.synthetic.main.item_challenge_list.view.*
@@ -19,16 +24,30 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 class ChallengeListAdapter(
-    private val challengeList: List<ChallengeResponse>,
+    private val challengeList: ChallengesListResponse,
     private val viewModel: ChallengesListsViewModel,
     parentFragment: ChallengesListsFragment
 ):
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private val mParentFragment = parentFragment
+    private val auxChallengesList: MutableList<ChallengeResponse> = mutableListOf()
     private val VIEW_TYPE_LOADING = 0
     private val VIEW_TYPE_LAST_ITEM = 1
     private val VIEW_TYPE_ITEM = 2
+    private val placeHolderChallenge = ChallengeResponse("placeholder")
+    private val placeHolderLastChallenge = ChallengeResponse("lastItem")
+
+    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
+        super.onAttachedToRecyclerView(recyclerView)
+        auxChallengesList.addAll(challengeList.data!!)
+        if(challengeList.type == "completed"){
+            auxChallengesList.add(placeHolderChallenge)
+        }else{
+            auxChallengesList.add(placeHolderLastChallenge)
+        }
+
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -48,37 +67,53 @@ class ChallengeListAdapter(
 
     }
 
-    override fun getItemCount() = challengeList.size
+    override fun getItemCount() = auxChallengesList.size
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         if(holder is ChallengeViewHolder){
             populateItems(holder, position)
         }else if(holder is LoadMoreViewHolder){
             EspressoIdlingResource.increment()
-            viewModel.getNextPage()
-            holder.view.pb_load_more.visibility = VISIBLE
-            viewModel.isNextPageLoadedLiveData.observe(mParentFragment.viewLifecycleOwner, Observer {
-                Handler().postDelayed({
-                    notifyDataSetChanged()
-                    EspressoIdlingResource.decrement()
-                }, 3000)
+            viewModel.getNextPage().observeOnce(mParentFragment.viewLifecycleOwner, Observer {
+                when(it.status){
+                    Status.SUCCESS -> {
+                        Handler().postDelayed({
+                            auxChallengesList.removeAt(auxChallengesList.size-1)
+                            viewModel.auxCompletedList.data?.let { challengesList ->
+                                auxChallengesList.addAll(
+                                    challengesList
+                                )
+                            }
+                            if (viewModel.auxCompletedList.pageNumber!! <= challengeList.totalPages!!){
+                                auxChallengesList.add(placeHolderChallenge)
+                            }else{
+                                auxChallengesList.add(placeHolderLastChallenge)
+                            }
+                            notifyDataSetChanged()
+                            EspressoIdlingResource.decrement()
+                        }, 3000)
+                    }
+                    Status.ERROR -> {
+                        Toast.makeText(mParentFragment.context, it.message, Toast.LENGTH_LONG).show()}
+                }
             })
+            holder.view.pb_load_more.visibility = VISIBLE
         }
 
     }
 
     private fun populateItems(holder: ChallengeViewHolder, position: Int) {
-        holder.view.tv_item_challenge_title.text = challengeList[position].name
-        if (challengeList[position].completedAt != null) {
+        holder.view.tv_item_challenge_title.text = auxChallengesList[position].name
+        if (auxChallengesList[position].completedAt != null) {
             val formatter = DateTimeFormatter.ofPattern("MMMM dd - yyyy")
             holder.view.tv_item_challenge_date.text = mParentFragment.getString(
                 R.string.label_challenge_completed_at, formatter.format(
-                    LocalDateTime.ofInstant(challengeList[position].completedAt?.toInstant(),
+                    LocalDateTime.ofInstant(auxChallengesList[position].completedAt?.toInstant(),
                         ZoneId.systemDefault())))
         } else {
             var tags = ""
-            if (challengeList[position].tags != null) {
-                for (tag in challengeList[position].tags!!) {
+            if (auxChallengesList[position].tags != null) {
+                for (tag in auxChallengesList[position].tags!!) {
                     tags = "$tags #$tag"
                 }
                 holder.view.tv_item_challenge_date.text = tags
@@ -89,7 +124,7 @@ class ChallengeListAdapter(
             EspressoIdlingResource.increment()
             val action =
                 ChallengesListsFragmentDirections.actionChallengesFragmentToChallengeFragment(
-                    challengeList[position].id
+                    auxChallengesList[position].id
                 )
             mParentFragment.view?.let { parentFragment ->
                 Navigation.findNavController(
@@ -100,7 +135,7 @@ class ChallengeListAdapter(
     }
 
     override fun getItemViewType(position: Int): Int {
-        return when(challengeList[position].id){
+        return when(auxChallengesList[position].id){
             "placeholder" -> VIEW_TYPE_LOADING
             "lastItem" -> VIEW_TYPE_LAST_ITEM
             else -> VIEW_TYPE_ITEM
@@ -112,5 +147,14 @@ class ChallengeListAdapter(
     class LoadMoreViewHolder(var view: View): RecyclerView.ViewHolder(view)
 
     class LastItemViewHolder(var view: View): RecyclerView.ViewHolder(view)
+
+    private fun <T> LiveData<T>.observeOnce(lifecycleOwner: LifecycleOwner, observer: Observer<T>){
+        observe(lifecycleOwner, object: Observer<T>{
+            override fun onChanged(t: T?) {
+                observer.onChanged(t)
+                removeObserver(this)
+            }
+        })
+    }
 
 }

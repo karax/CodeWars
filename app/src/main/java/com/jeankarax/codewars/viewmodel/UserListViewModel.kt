@@ -16,10 +16,6 @@ import javax.inject.Inject
 
 class UserListViewModel(application: Application) : AndroidViewModel(application) {
 
-    val userLiveData by lazy { MutableLiveData<ViewResponse<UserResponse>>() }
-    val userListLiveData by lazy { MutableLiveData<ViewResponse<List<UserResponse>>>()}
-
-
     @Inject
     lateinit var userRepository: IUserRepository
 
@@ -28,27 +24,36 @@ class UserListViewModel(application: Application) : AndroidViewModel(application
         userRepository.setApplicationContext(getApplication())
     }
 
-    fun getUser(userName: String){
-        userRepository.getUser(userName).observeForever {
-            if (it.status == Status.SUCCESS){
-                CoroutineScope(IO).launch {
-                    it.data?.creationDate = Date()
-                    it.data?.let { user -> UserLocalDataBase(getApplication()).userDAO().saveUser(user) }
+    fun getUser(userName: String): LiveData<ViewResponse<UserResponse>>{
+        return Transformations.switchMap(userRepository.getUser(userName)){ response ->
+            object: LiveData<ViewResponse<UserResponse>>(){
+                override fun onActive() {
+                    super.onActive()
+                    if (response.status == Status.SUCCESS){
+                        CoroutineScope(IO).launch {
+                            response.data?.creationDate = Date()
+                            response.data?.let { user -> UserLocalDataBase(getApplication()).userDAO().saveUser(user) }
+                        }
+                    }
+                    value = response
                 }
             }
-            userLiveData.value = it
         }
     }
 
-    fun getUsersList(){
-        userRepository.getUsersList(5).observeForever{
-            userListLiveData.value = it
+    fun getUsersList(isSorted: Boolean):LiveData<ViewResponse<List<UserResponse>>> {
+        return Transformations.switchMap(userRepository.getUsersList(5)) { response ->
+            object : LiveData<ViewResponse<List<UserResponse>>>() {
+                override fun onActive() {
+                    super.onActive()
+                    value = if (isSorted){
+                        ViewResponse.success(response.data?.sortedWith(compareBy { it.ranks?.overall?.rank }))
+                    }else {
+                        response
+                    }
+                }
+            }
         }
-    }
-
-    fun getSortedUserList(){
-        val sortedList = ViewResponse.success(userListLiveData.value?.data?.sortedWith(compareBy { it.ranks?.overall?.rank }))
-        userListLiveData.value = sortedList
     }
 
 }

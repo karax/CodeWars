@@ -23,7 +23,7 @@ constructor(
     private val userAPI: UserAPI
 ): IUserRepository
 {
-    lateinit var mApplication: Application
+    private lateinit var mApplication: Application
 
     override fun getUser(userName: String): LiveData<ViewResponse<UserResponse>> {
         return if (!Utils.isOnline(mApplication)){
@@ -33,8 +33,20 @@ constructor(
         }
     }
 
-    override fun getUsersList(limit: Int): LiveData<ViewResponse<ArrayList<UserResponse>>>{
-        return getUserListFromDataBase(limit)
+    override fun getUsersList(limit: Int): LiveData<ViewResponse<ArrayList<UserResponse>>> {
+        val userList = MutableLiveData<ViewResponse<ArrayList<UserResponse>>>()
+        userList.value = ViewResponse.loading(null)
+        CoroutineScope(IO).launch {
+            var userListFromDataBase: ArrayList<UserResponse> = UserLocalDataBase(mApplication).userDAO().getLastUsersList(limit) as ArrayList<UserResponse>
+            withContext(Main){
+                if(null != userListFromDataBase){
+                    userList.value  = ViewResponse.success(userListFromDataBase)
+                }else{
+                    userList.value = ViewResponse.error("User not found", null, null)
+                }
+            }
+        }
+        return userList
     }
 
     private fun getUserFromDatabase(userName: String): LiveData<ViewResponse<UserResponse>>{
@@ -52,22 +64,6 @@ constructor(
             }
         }
         return user
-    }
-
-    private fun getUserListFromDataBase(limit: Int): LiveData<ViewResponse<ArrayList<UserResponse>>> {
-        val userList = MutableLiveData<ViewResponse<ArrayList<UserResponse>>>()
-        userList.value = ViewResponse.loading(null)
-        CoroutineScope(IO).launch {
-            var userListFromDataBase: ArrayList<UserResponse> = UserLocalDataBase(mApplication).userDAO().getLastUsersList(limit) as ArrayList<UserResponse>
-            withContext(Main){
-                if(null != userListFromDataBase){
-                    userList.value  = ViewResponse.success(userListFromDataBase)
-                }else{
-                    userList.value = ViewResponse.error("User not found", null, null)
-                }
-            }
-        }
-        return userList
     }
 
     override fun setApplicationContext(application: Application) {
