@@ -40,7 +40,7 @@ class ChallengesListsFragment : Fragment() {
             userName = ChallengesListsFragmentArgs.fromBundle(it).userName
         }
 
-        viewModel.challengesListLiveDate.observe(viewLifecycleOwner, Observer {response ->
+        viewModel.getChallengesLists(userName).observe(viewLifecycleOwner, Observer {response ->
             when(response.status){
                 Status.SUCCESS -> {
                     vp_lists.visibility = VISIBLE
@@ -60,8 +60,6 @@ class ChallengesListsFragment : Fragment() {
                 }
             }
         })
-
-        viewModel.getChallengesLists(userName)
         mt_challenges_toolbar.title = getString(R.string.title_challenges_toolbar, userName)
         setNavBottomBarListeners()
 

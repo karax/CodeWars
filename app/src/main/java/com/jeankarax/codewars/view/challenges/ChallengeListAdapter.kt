@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.View.VISIBLE
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
@@ -73,8 +74,7 @@ class ChallengeListAdapter(
             populateItems(holder, position)
         }else if(holder is LoadMoreViewHolder){
             EspressoIdlingResource.increment()
-            viewModel.getNextPage()
-            viewModel.nextChallengesListPageLiveData.observeOnce(mParentFragment.viewLifecycleOwner, Observer {
+            viewModel.getNextPage().observeOnce(mParentFragment.viewLifecycleOwner, Observer {
                 when(it.status){
                     Status.SUCCESS -> {
                         Handler().postDelayed({
@@ -93,8 +93,8 @@ class ChallengeListAdapter(
                             EspressoIdlingResource.decrement()
                         }, 3000)
                     }
-                    Status.LOADING -> {}
-                    Status.ERROR -> {}
+                    Status.ERROR -> {
+                        Toast.makeText(mParentFragment.context, it.message, Toast.LENGTH_LONG).show()}
                 }
             })
             holder.view.pb_load_more.visibility = VISIBLE

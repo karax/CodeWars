@@ -2,7 +2,8 @@ package com.jeankarax.codewars.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Transformations
 import com.jeankarax.codewars.model.di.DaggerChallengeRepositoryComponent
 import com.jeankarax.codewars.model.repository.IChallengeRepository
 import com.jeankarax.codewars.model.response.ChallengeResponse
@@ -16,8 +17,6 @@ import javax.inject.Inject
 
 class ChallengeViewModel(application: Application): AndroidViewModel(application) {
 
-    val challengeLiveData by lazy { MutableLiveData<ViewResponse<ChallengeResponse>>() }
-
     @Inject
     lateinit var challengeRepository: IChallengeRepository
 
@@ -26,14 +25,19 @@ class ChallengeViewModel(application: Application): AndroidViewModel(application
         challengeRepository.setApplicationContext(getApplication())
     }
 
-    fun getChallenge(challengeId: String){
-        challengeRepository.getChallenge(challengeId).observeForever{
-            if(it.status == Status.SUCCESS){
-                CoroutineScope(IO).launch {
-                    it.data?.let {challenge -> UserLocalDataBase(getApplication()).challengeDAO().saveChallenge(challenge) }
+    fun getChallenge(challengeId: String): LiveData<ViewResponse<ChallengeResponse>> {
+        return Transformations.switchMap(challengeRepository.getChallenge(challengeId)) { response ->
+            object : LiveData<ViewResponse<ChallengeResponse>>() {
+                override fun onActive() {
+                    super.onActive()
+                    if(response.status == Status.SUCCESS){
+                        CoroutineScope(IO).launch {
+                            response.data?.let {challenge -> UserLocalDataBase(getApplication()).challengeDAO().saveChallenge(challenge) }
+                        }
+                    }
+                    value = response
                 }
             }
-            challengeLiveData.value = it
         }
     }
 

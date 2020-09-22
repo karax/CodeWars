@@ -40,7 +40,7 @@ class UserListFragment : Fragment() {
         buildRecyclerView()
         viewModel = ViewModelProviders.of(this).get(UserListViewModel::class.java)
         setOnClickListeners()
-        getUsersList()
+        getUsersList(false)
     }
 
     override fun onResume() {
@@ -87,11 +87,11 @@ class UserListFragment : Fragment() {
                 if (which == 0) {
                     if (isChecked){
                         isOrderedByRank = true
-                        viewModel.getSortedUserList()
+                        getUsersList(true)
                         tv_users_ordered_by.text = getString(R.string.text_users_ordered_by_rank)
                     }else{
                         isOrderedByRank = false
-                        viewModel.getUsersList()
+                        getUsersList(false)
                         tv_users_ordered_by.text = getString(R.string.text_users_ordered_by_search)
                     }
                 }
@@ -108,8 +108,7 @@ class UserListFragment : Fragment() {
 
         } else {
             tv_empty_user_error.visibility = GONE
-            viewModel.getUser(et_search_user_name.text.toString())
-            viewModel.userLiveData.observe(viewLifecycleOwner, Observer {
+            viewModel.getUser(et_search_user_name.text.toString()).observe(viewLifecycleOwner, Observer {
                 when(it.status){
                     Status.LOADING -> {
                         progressBar.visibility = VISIBLE
@@ -127,9 +126,8 @@ class UserListFragment : Fragment() {
         }
     }
 
-    private fun getUsersList(){
-        viewModel.getUsersList()
-        viewModel.userListLiveData.observe(viewLifecycleOwner, Observer {
+    private fun getUsersList(isSorted: Boolean){
+        viewModel.getUsersList(isSorted).observe(viewLifecycleOwner, Observer {
             when(it.status){
                 Status.LOADING -> {
                     progressBar.visibility = VISIBLE

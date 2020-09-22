@@ -23,7 +23,7 @@ constructor(
     private val userAPI: UserAPI
 ): IUserRepository
 {
-    lateinit var mApplication: Application
+    private lateinit var mApplication: Application
 
     override fun getUser(userName: String): LiveData<ViewResponse<UserResponse>> {
         return if (!Utils.isOnline(mApplication)){
