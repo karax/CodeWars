@@ -27,12 +27,6 @@ constructor(
 
     lateinit var mApplication: Application
 
-    private val disposable = CompositeDisposable()
-    private val allChallenges = MutableLiveData<MutableList<ChallengesListResponse>>()
-    private val completedChallenges = MutableLiveData<ChallengesListResponse>()
-    private val error = MediatorLiveData<Throwable>()
-    private var auxAllChallengesList = mutableListOf<ChallengesListResponse>()
-
     override fun getChallenge(id: String): LiveData<ViewResponse<ChallengeResponse>>{
         return if (!Utils.isOnline(mApplication)){
             getChallengeFromDataBase(id)
@@ -58,89 +52,12 @@ constructor(
         return challenge
     }
 
-    override fun getCompletedChallenges(userName: String, page: Long, isFirstCall: Boolean) {
-        if(!Utils.isOnline(mApplication)){
-            if(isFirstCall) {
-                CoroutineScope(IO).launch {
-                    auxAllChallengesList.add(getChallengeListFromDataBase(userName, 0, "completed"))
-                    getAuthoredChallenges(userName)
-                }
-            }else{
-                CoroutineScope(IO).launch {
-                    auxAllChallengesList.add(getChallengeListFromDataBase(userName, page, "completed"))
-                    withContext(Main){
-                        allChallenges.postValue(auxAllChallengesList)
-                    }
-                }
-            }
-        }else {
-            disposable.add(challengeAPI.getCompletedChallenges(userName, page.toInt())
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(object : DisposableSingleObserver<ChallengesListResponse>() {
-                    override fun onSuccess(t: ChallengesListResponse) {
-                        if (isFirstCall) {
-                            saveChallengesListToDataBase(t, userName, 0, "completed")
-                            auxAllChallengesList.add(t)
-                            getAuthoredChallenges(userName)
-                        } else {
-                            saveChallengesListToDataBase(t, userName, page, "completed")
-                            auxAllChallengesList[0] = t
-                            allChallenges.postValue(auxAllChallengesList)
-                        }
-                    }
-
-                    override fun onError(e: Throwable) {
-                        error.postValue(e)
-                    }
-
-                })
-            )
-        }
-    }
-
-    override fun getAuthoredChallenges(userName: String) {
-        if(!Utils.isOnline(mApplication)){
-            CoroutineScope(IO).launch {
-                auxAllChallengesList.add(getChallengeListFromDataBase(userName, 0, "authored"))
-                withContext(Main){
-                    allChallenges.postValue(auxAllChallengesList)
-                }
-            }
-        }
-        disposable.add(challengeAPI.getAuthoredChallenges(userName)
-            .subscribeOn(Schedulers.newThread())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribeWith(object : DisposableSingleObserver<ChallengesListResponse>(){
-                override fun onSuccess(t: ChallengesListResponse) {
-                    saveChallengesListToDataBase(t, userName, 0, "authored")
-                    auxAllChallengesList.add(t)
-                    allChallenges.postValue(auxAllChallengesList)
-                }
-
-                override fun onError(e: Throwable) {
-                    error.postValue(e)
-                }
-
-            }))
-    }
-
     override fun getChallengesList(userName: String, page: Long): LiveData<ViewResponse<List<ChallengesListResponse>>>{
         return challengeAPI.getChallengesList(userName, page)
     }
 
     override fun getNextPage(userName: String, page: Long): LiveData<ViewResponse<ChallengesListResponse>> {
         return challengeAPI.getNextPage(userName, page)
-    }
-
-    private fun saveChallengesListToDataBase(challengesList: ChallengesListResponse,
-                                                     userName: String, page: Long, type: String){
-        CoroutineScope(IO).launch{
-            challengesList.id = userName+type
-            challengesList.pageNumber = page
-            challengesList.type = type
-            UserLocalDataBase(mApplication).challengeDAO().saveChallengesList(challengesList)
-        }
     }
 
     private suspend fun getChallengeListFromDataBase(userName: String, page: Long, type: String): ChallengesListResponse {

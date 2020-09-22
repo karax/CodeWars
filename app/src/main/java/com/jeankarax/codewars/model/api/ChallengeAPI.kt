@@ -13,18 +13,14 @@ constructor(
 
     val challengeLiveData = MediatorLiveData<ViewResponse<ChallengeResponse>>()
     val challengesListLiveData = MediatorLiveData<ViewResponse<List<ChallengesListResponse>>>()
-    val nextPageLiveData = MediatorLiveData<ViewResponse<ChallengesListResponse>>()
-
-    fun getCompletedChallenges(userName: String, page: Int) = apiCalls.getCompletedChallenges(userName, page)
-
-    fun getAuthoredChallenges(userName: String) = apiCalls.getAuthoredChallenges(userName)
+    private val nextPageLiveData = MediatorLiveData<ViewResponse<ChallengesListResponse>>()
 
     fun getChallengesList(userName: String, page: Long): LiveData<ViewResponse<List<ChallengesListResponse>>>{
         challengesListLiveData.value = ViewResponse.loading(null)
         val auxListResponse: MutableList<ChallengesListResponse> = mutableListOf(
             ChallengesListResponse(), ChallengesListResponse()
         )
-        challengesListLiveData.addSource(apiCalls.getCompletedChallenges2(userName, page)){ response ->
+        challengesListLiveData.addSource(apiCalls.getCompletedChallenges(userName, page)){ response ->
             when(response){
                 is BaseApiSuccessResponse -> {
                     auxListResponse[0] = response.body
@@ -37,7 +33,7 @@ constructor(
                 }
             }
         }
-        challengesListLiveData.addSource(apiCalls.getAuthoredChallenges2(userName)){ response ->
+        challengesListLiveData.addSource(apiCalls.getAuthoredChallenges(userName)){ response ->
             when(response){
                 is BaseApiSuccessResponse -> {
                     auxListResponse[1] = response.body
@@ -69,7 +65,7 @@ constructor(
     }
 
     fun getNextPage(userName: String, page: Long): LiveData<ViewResponse<ChallengesListResponse>> {
-        nextPageLiveData.addSource(apiCalls.getCompletedChallenges2(userName, page)){ response ->
+        nextPageLiveData.addSource(apiCalls.getCompletedChallenges(userName, page)){ response ->
             when(response){
                 is BaseApiSuccessResponse -> {
                     nextPageLiveData.value = ViewResponse.success(response.body)

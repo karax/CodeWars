@@ -9,14 +9,10 @@ import com.jeankarax.codewars.model.api.ChallengeAPI
 import com.jeankarax.codewars.model.api.UserAPI
 import com.jeankarax.codewars.model.response.*
 import io.reactivex.Scheduler
-import io.reactivex.Single
 import io.reactivex.android.plugins.RxAndroidPlugins
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.internal.schedulers.ExecutorScheduler
-import io.reactivex.observers.DisposableSingleObserver
 import io.reactivex.plugins.RxJavaPlugins
-import io.reactivex.schedulers.Schedulers
 import org.junit.*
 import org.junit.runner.RunWith
 import org.mockito.Mock
@@ -111,135 +107,13 @@ class ServiceTest {
     fun whenGetChallengesLists_andIsResponseSuccess_thenReturnChallengesSuccessful(){
         val challengeAPI = ChallengeAPI(apiCalls)
 
-        Mockito.`when`(apiCalls.getCompletedChallenges2(userName, 1)).thenReturn(getMockedCompletedChallenges2())
-        Mockito.`when`(apiCalls.getAuthoredChallenges2(userName)).thenReturn(getMockedAuthoredChallenges2())
+        Mockito.`when`(apiCalls.getCompletedChallenges(userName, 1)).thenReturn(getMockedCompletedChallenges2())
+        Mockito.`when`(apiCalls.getAuthoredChallenges(userName)).thenReturn(getMockedAuthoredChallenges2())
 
         challengeAPI.getChallengesList(userName, 1)
         Assert.assertEquals(challengeAPI.challengesListLiveData.getOrAwaitValue().status, Status.SUCCESS)
         Assert.assertEquals(challengeAPI.challengesListLiveData.getOrAwaitValue().data?.get(0)?.data?.get(0)?.id, "13")
         Assert.assertEquals(challengeAPI.challengesListLiveData.getOrAwaitValue().data?.get(1)?.data?.get(0)?.id, "11")
-
-    }
-
-    @Test
-    fun whenGetCompletedChallenges_andIsResponseError_thenReturnCompletedChallengesError(){
-        val challengeAPI = ChallengeAPI(apiCalls)
-        var isLoading = true
-        var isError = false
-
-        Mockito.`when`(apiCalls.getCompletedChallenges("leeeroy", 1)).thenReturn(getMockedCompletedChallengesError())
-
-        fun getChallengeResponse() {
-            challengeAPI.getCompletedChallenges("leeeroy", page = 1)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(object : DisposableSingleObserver<ChallengesListResponse>() {
-                    override fun onSuccess(t: ChallengesListResponse) {
-                        isLoading = false
-                    }
-                    override fun onError(e: Throwable) {
-                        isLoading = false
-                        isError = true
-                    }
-
-                })
-        }
-
-        getChallengeResponse()
-        Assert.assertTrue(isError)
-        Assert.assertFalse(isLoading)
-
-    }
-
-    @Test
-    fun whenGetCompletedChallenge_andIsResponseSuccess_thenReturnCompletedChallengesSuccessful(){
-        val challengeAPI = ChallengeAPI(apiCalls)
-        var isLoading = true
-        var testFirstChallengeId = ""
-
-        Mockito.`when`(apiCalls.getCompletedChallenges(userName, page = 1)).thenReturn(getMockedCompletedChallenges())
-
-        fun getChallengeResponse() {
-            challengeAPI.getCompletedChallenges(userName, page = 1)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(object : DisposableSingleObserver<ChallengesListResponse>() {
-                    override fun onSuccess(t: ChallengesListResponse) {
-                        isLoading = false
-                        testFirstChallengeId = t.data?.get(0)?.id.toString()
-                    }
-
-                    override fun onError(e: Throwable) {
-
-                    }
-
-                })
-        }
-
-        getChallengeResponse()
-        Assert.assertEquals(testFirstChallengeId, "13")
-        Assert.assertFalse(isLoading)
-
-    }
-
-    @Test
-    fun whenGetAuthoredChallenges_andIsResponseError_thenReturnAuthoredChallengesError(){
-        val challengeAPI = ChallengeAPI(apiCalls)
-        var isLoading = true
-        var isError = false
-
-        Mockito.`when`(apiCalls.getAuthoredChallenges(userName)).thenReturn(getMockedAuthoredChallengesError())
-
-        fun getChallengeResponse() {
-            challengeAPI.getAuthoredChallenges(userName)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(object : DisposableSingleObserver<ChallengesListResponse>() {
-                    override fun onSuccess(t: ChallengesListResponse) {
-                        isLoading = false
-                    }
-                    override fun onError(e: Throwable) {
-                        isLoading = false
-                        isError = true
-                    }
-
-                })
-        }
-
-        getChallengeResponse()
-        Assert.assertTrue(isError)
-        Assert.assertFalse(isLoading)
-
-    }
-
-    @Test
-    fun whenGetAuthoredChallenges_andIsResponseSuccess_thenReturnChallengesSuccessful(){
-        val challengeAPI = ChallengeAPI(apiCalls)
-        var isLoading = true
-        var testFirstChallengeId = ""
-
-        Mockito.`when`(apiCalls.getAuthoredChallenges(userName)).thenReturn(getMockedAuthoredChallenges())
-
-        fun getChallengeResponse() {
-            challengeAPI.getAuthoredChallenges(userName)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(object : DisposableSingleObserver<ChallengesListResponse>() {
-                    override fun onSuccess(t: ChallengesListResponse) {
-                        isLoading = false
-                        testFirstChallengeId = t.data?.get(0)?.id.toString()
-                    }
-
-                    override fun onError(e: Throwable) {
-
-                    }
-
-                })
-        }
-
-        getChallengeResponse()
-        Assert.assertEquals(testFirstChallengeId, "13")
-        Assert.assertFalse(isLoading)
 
     }
 
@@ -272,7 +146,7 @@ class ServiceTest {
     private fun getMockedCompletedChallenges2(): LiveData<BaseApiResponse<ChallengesListResponse>> {
         val response = MutableLiveData<BaseApiResponse<ChallengesListResponse>>()
         val challenge = ChallengesListResponse(totalPages = 1, totalItems = null
-            , data = listOf(ChallengeResponse(id = "13", name = "Ice Crown Citadel")))
+            , data = mutableListOf(ChallengeResponse(id = "13", name = "Ice Crown Citadel")))
         response.value = BaseApiResponse.create(Response.success(challenge))
         return response
     }
@@ -280,22 +154,10 @@ class ServiceTest {
     private fun getMockedAuthoredChallenges2(): LiveData<BaseApiResponse<ChallengesListResponse>> {
         val response = MutableLiveData<BaseApiResponse<ChallengesListResponse>>()
         val challenge = ChallengesListResponse(totalPages = 1, totalItems = null
-            , data = listOf(ChallengeResponse(id = "11", name = "Black Temple")))
+            , data = mutableListOf(ChallengeResponse(id = "11", name = "Black Temple")))
         response.value = BaseApiResponse.create(Response.success(challenge))
         return response
     }
-
-    private fun getMockedCompletedChallenges(): Single<ChallengesListResponse>? =
-        Single.just(ChallengesListResponse(totalPages = 1, totalItems = null
-            , data = listOf(ChallengeResponse(id = "13", name = "Ice Crown Citadel"))))
-
-    private fun getMockedCompletedChallengesError(): Single<ChallengesListResponse>?  = Single.error(Throwable())
-
-    private fun getMockedAuthoredChallenges(): Single<ChallengesListResponse>? =
-        Single.just(ChallengesListResponse(totalPages = 1, totalItems = null
-            , data = listOf(ChallengeResponse(id = "13", name = "Ice Crown Citadel"))))
-
-    private fun getMockedAuthoredChallengesError(): Single<ChallengesListResponse>?  = Single.error(Throwable())
 
     fun <T> LiveData<T>.getOrAwaitValue(
         time: Long = 2,

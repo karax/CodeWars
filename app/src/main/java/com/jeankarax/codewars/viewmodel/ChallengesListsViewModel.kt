@@ -56,7 +56,7 @@ class ChallengesListsViewModel(application: Application): AndroidViewModel(appli
         }
     }
 
-    fun getNextPage2(){
+    fun getNextPage(){
         challengeRepository.getNextPage(auxUserName, auxNextPage).observeOnce(Observer {
             when(it.status){
                 Status.SUCCESS -> {
