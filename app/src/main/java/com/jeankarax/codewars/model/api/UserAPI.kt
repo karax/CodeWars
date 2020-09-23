@@ -1,11 +1,9 @@
 package com.jeankarax.codewars.model.api
 
+import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
-import com.jeankarax.codewars.model.response.ViewResponse
-import com.jeankarax.codewars.model.response.BaseApiErrorResponse
-import com.jeankarax.codewars.model.response.BaseApiSuccessResponse
-import com.jeankarax.codewars.model.response.UserResponse
+import com.jeankarax.codewars.model.response.*
 import javax.inject.Inject
 
 class UserAPI
@@ -15,20 +13,24 @@ constructor(
 )
 {
 
+    @VisibleForTesting
     val userLiveData = MediatorLiveData<ViewResponse<UserResponse>>()
 
     fun getUser(userName: String): LiveData<ViewResponse<UserResponse>> {
-        userLiveData.value = ViewResponse.loading(null)
-        userLiveData.addSource(apiCalls.getUser(userName)){ response ->
-            when(response){
-                is BaseApiSuccessResponse ->{
-                    userLiveData.value = ViewResponse.success(response.body)
-                }
-                is BaseApiErrorResponse -> {
-                    userLiveData.value = ViewResponse.error(response.errorMessage, null, response.throwable)
-                }
+        return object: NetworkBoundResource<UserResponse>(){
+            override fun createCall(): LiveData<BaseApiResponse<UserResponse>> {
+                return apiCalls.getUser(userName)
             }
-        }
-        return userLiveData
+            override fun handleApiSuccessResponse(response: BaseApiSuccessResponse<UserResponse>) {
+                userLiveData.value = ViewResponse.success(response.body)
+                result.value = ViewResponse.success(response.body)
+            }
+            override fun handleApiErrorResponse(errorMessage: String, throwable: Throwable?) {
+                userLiveData.value = ViewResponse.error(errorMessage, null, throwable)
+                result.value = ViewResponse.error(errorMessage, null, throwable)
+            }
+
+
+        }.asLiveData()
     }
 }
