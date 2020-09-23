@@ -11,8 +11,10 @@ import com.jeankarax.codewars.model.response.*
 import io.reactivex.Scheduler
 import io.reactivex.android.plugins.RxAndroidPlugins
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.disposables.Disposable
 import io.reactivex.internal.schedulers.ExecutorScheduler
 import io.reactivex.plugins.RxJavaPlugins
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.*
 import org.junit.runner.RunWith
 import org.mockito.Mock
@@ -20,10 +22,8 @@ import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
 import org.mockito.junit.MockitoJUnitRunner
 import retrofit2.Response
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.Executor
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
+import java.util.concurrent.*
+
 
 @RunWith(MockitoJUnitRunner::class)
 class ServiceTest {
@@ -45,6 +45,11 @@ class ServiceTest {
     @Before
     fun setupRxSchedulers() {
         val immediate = object: Scheduler() {
+
+            override fun scheduleDirect(run: Runnable, delay: Long, unit: TimeUnit): Disposable {
+                return super.scheduleDirect(run, 0, unit)
+            }
+
             override fun createWorker(): Worker {
                 return ExecutorScheduler.ExecutorWorker(Executor { it.run() }, true)
             }
@@ -52,13 +57,21 @@ class ServiceTest {
 
         RxJavaPlugins.setInitNewThreadSchedulerHandler { scheduler -> immediate }
         RxAndroidPlugins.setInitMainThreadSchedulerHandler { scheduler -> immediate }
+        RxJavaPlugins.setInitIoSchedulerHandler { scheduler -> immediate }
+        RxJavaPlugins.setInitComputationSchedulerHandler { scheduler -> immediate }
+        RxJavaPlugins.setInitSingleSchedulerHandler { scheduler -> immediate }
     }
+
+    @ExperimentalCoroutinesApi
+    @get:Rule
+    val coroutineTestRule = CoroutineTestRule()
 
     @After
     fun clearDisposable(){
         compositeDisposable.clear()
     }
 
+    @ExperimentalCoroutinesApi
     @Test
     fun whenGetUser_andIsResponseSuccess_thenReturnUserSuccessful(){
         val userAPI = UserAPI(apiCalls)
@@ -66,7 +79,7 @@ class ServiceTest {
 
         Mockito.`when`(apiCalls.getUser(userName)).thenReturn(mockedUser)
 
-        userAPI.getUser(userName)
+        userAPI.getUser(userName).observeForever(){}
         Assert.assertEquals(userAPI.userLiveData.getOrAwaitValue().status, Status.SUCCESS)
         Assert.assertEquals(userAPI.userLiveData.getOrAwaitValue().data?.username, userName)
     }
@@ -78,7 +91,7 @@ class ServiceTest {
 
         Mockito.`when`(apiCalls.getUser(userName)).thenReturn(mockedUser)
 
-        userAPI.getUser(userName)
+        userAPI.getUser(userName).observeForever(){}
         Assert.assertEquals(userAPI.userLiveData.getOrAwaitValue().status, Status.ERROR)
     }
 
@@ -88,7 +101,7 @@ class ServiceTest {
 
         Mockito.`when`(apiCalls.getChallenge("12")).thenReturn(getMockedChallenge())
 
-        challengeAPI.getChallenge("12")
+        challengeAPI.getChallenge("12").observeForever(){}
         Assert.assertEquals(challengeAPI.challengeLiveData.getOrAwaitValue().status, Status.SUCCESS)
         Assert.assertEquals(challengeAPI.challengeLiveData.getOrAwaitValue().data?.id, "12")
     }
@@ -99,7 +112,7 @@ class ServiceTest {
 
         Mockito.`when`(apiCalls.getChallenge("12")).thenReturn(getMockedChallengeError())
 
-        challengeAPI.getChallenge("12")
+        challengeAPI.getChallenge("12").observeForever(){}
         Assert.assertEquals(challengeAPI.challengeLiveData.getOrAwaitValue().status, Status.ERROR)
     }
 

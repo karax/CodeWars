@@ -1,7 +1,9 @@
 package com.jeankarax.codewars.model.api
 
+import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
+import androidx.lifecycle.MutableLiveData
 import com.jeankarax.codewars.model.response.*
 import javax.inject.Inject
 
@@ -11,9 +13,13 @@ constructor(
     private val apiCalls: APICalls
 ){
 
-    val challengeLiveData = MediatorLiveData<ViewResponse<ChallengeResponse>>()
     val challengesListLiveData = MediatorLiveData<ViewResponse<List<ChallengesListResponse>>>()
-    private val nextPageLiveData = MediatorLiveData<ViewResponse<ChallengesListResponse>>()
+
+    @VisibleForTesting
+    val challengeLiveData = MutableLiveData<ViewResponse<ChallengeResponse>>()
+
+    @VisibleForTesting
+    val nextPageLiveData = MediatorLiveData<ViewResponse<ChallengesListResponse>>()
 
     fun getChallengesList(userName: String, page: Long): LiveData<ViewResponse<List<ChallengesListResponse>>>{
         challengesListLiveData.value = ViewResponse.loading(null)
@@ -50,32 +56,35 @@ constructor(
     }
 
     fun getChallenge(id: String): LiveData<ViewResponse<ChallengeResponse>>{
-        challengeLiveData.value = ViewResponse.loading(null)
-        challengeLiveData.addSource(apiCalls.getChallenge(id)){ response ->
-            when(response){
-                is BaseApiSuccessResponse ->{
-                    challengeLiveData.value = ViewResponse.success(response.body)
-                }
-                is BaseApiErrorResponse -> {
-                    challengeLiveData.value = ViewResponse.error(response.errorMessage, null, response.throwable)
-                }
+        return object: NetworkBoundResource<ChallengeResponse>(){
+            override fun createCall(): LiveData<BaseApiResponse<ChallengeResponse>> {
+                return apiCalls.getChallenge(id)
             }
-        }
-        return challengeLiveData
+            override fun handleApiSuccessResponse(response: BaseApiSuccessResponse<ChallengeResponse>) {
+                challengeLiveData.value = ViewResponse.success(response.body)
+                result.value = ViewResponse.success(response.body)
+            }
+            override fun handleApiErrorResponse(errorMessage: String, throwable: Throwable?) {
+                challengeLiveData.value = ViewResponse.error(errorMessage, null, throwable)
+                result.value = ViewResponse.error(errorMessage, null, throwable)
+            }
+        }.asLiveData()
     }
 
     fun getNextPage(userName: String, page: Long): LiveData<ViewResponse<ChallengesListResponse>> {
-        nextPageLiveData.addSource(apiCalls.getCompletedChallenges(userName, page)){ response ->
-            when(response){
-                is BaseApiSuccessResponse -> {
-                    nextPageLiveData.value = ViewResponse.success(response.body)
-                }
-                is BaseApiErrorResponse -> {
-                    nextPageLiveData.value = ViewResponse.error(response.errorMessage, null, response.throwable)
-                }
+        return object: NetworkBoundResource<ChallengesListResponse>(){
+            override fun createCall(): LiveData<BaseApiResponse<ChallengesListResponse>> {
+                return apiCalls.getCompletedChallenges(userName, page)
             }
-        }
-        return nextPageLiveData
+            override fun handleApiSuccessResponse(response: BaseApiSuccessResponse<ChallengesListResponse>) {
+                nextPageLiveData.value = ViewResponse.success(response.body)
+                result.value = ViewResponse.success(response.body)
+            }
+            override fun handleApiErrorResponse(errorMessage: String, throwable: Throwable?) {
+                nextPageLiveData.value = ViewResponse.error(errorMessage, null, throwable)
+                result.value = ViewResponse.error(errorMessage, null, throwable)
+            }
+        }.asLiveData()
     }
 
 }
