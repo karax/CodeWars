@@ -14,9 +14,9 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.jeankarax.codewars.R
 import com.jeankarax.codewars.model.response.ChallengeResponse
-import com.jeankarax.codewars.model.response.Status
 import com.jeankarax.codewars.utils.EspressoIdlingResource
 import com.jeankarax.codewars.viewmodel.ChallengeViewModel
+import com.jeankarax.livedataretrofitadapterlibrary.Status
 import kotlinx.android.synthetic.main.fragment_challenge.*
 
 class ChallengeFragment : Fragment() {

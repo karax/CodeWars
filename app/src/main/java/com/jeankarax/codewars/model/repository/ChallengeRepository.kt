@@ -7,9 +7,9 @@ import androidx.lifecycle.MutableLiveData
 import com.jeankarax.codewars.model.api.ChallengeAPI
 import com.jeankarax.codewars.model.response.ChallengeResponse
 import com.jeankarax.codewars.model.response.ChallengesListResponse
-import com.jeankarax.codewars.model.response.ViewResponse
 import com.jeankarax.codewars.model.room.UserLocalDataBase
 import com.jeankarax.codewars.utils.Utils
+import com.jeankarax.livedataretrofitadapterlibrary.ViewResponse
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.observers.DisposableSingleObserver

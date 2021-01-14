@@ -14,9 +14,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.jeankarax.codewars.R
 import com.jeankarax.codewars.model.response.ChallengeResponse
 import com.jeankarax.codewars.model.response.ChallengesListResponse
-import com.jeankarax.codewars.model.response.Status
 import com.jeankarax.codewars.utils.EspressoIdlingResource
 import com.jeankarax.codewars.viewmodel.ChallengesListsViewModel
+import com.jeankarax.livedataretrofitadapterlibrary.Status
 import kotlinx.android.synthetic.main.item_challenge_list.view.*
 import kotlinx.android.synthetic.main.item_loading_challenge.view.*
 import java.time.LocalDateTime

@@ -7,9 +7,9 @@ import androidx.lifecycle.Transformations
 import com.jeankarax.codewars.model.di.DaggerChallengeRepositoryComponent
 import com.jeankarax.codewars.model.repository.IChallengeRepository
 import com.jeankarax.codewars.model.response.ChallengeResponse
-import com.jeankarax.codewars.model.response.Status
-import com.jeankarax.codewars.model.response.ViewResponse
 import com.jeankarax.codewars.model.room.UserLocalDataBase
+import com.jeankarax.livedataretrofitadapterlibrary.Status
+import com.jeankarax.livedataretrofitadapterlibrary.ViewResponse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.launch

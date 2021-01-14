@@ -1,10 +1,10 @@
 package com.jeankarax.codewars.model.api
 
 import androidx.lifecycle.LiveData
-import com.jeankarax.codewars.model.response.BaseApiResponse
 import com.jeankarax.codewars.model.response.ChallengeResponse
 import com.jeankarax.codewars.model.response.ChallengesListResponse
 import com.jeankarax.codewars.model.response.UserResponse
+import com.jeankarax.livedataretrofitadapterlibrary.BaseApiResponse
 import io.reactivex.Single
 import retrofit2.http.GET
 import retrofit2.http.Path

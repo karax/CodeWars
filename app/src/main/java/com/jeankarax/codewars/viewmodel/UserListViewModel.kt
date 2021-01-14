@@ -2,12 +2,12 @@ package com.jeankarax.codewars.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.*
-import com.jeankarax.codewars.model.response.Status
-import com.jeankarax.codewars.model.response.ViewResponse
 import com.jeankarax.codewars.model.di.DaggerUserRepositoryComponent
 import com.jeankarax.codewars.model.response.UserResponse
 import com.jeankarax.codewars.model.repository.IUserRepository
 import com.jeankarax.codewars.model.room.UserLocalDataBase
+import com.jeankarax.livedataretrofitadapterlibrary.Status
+import com.jeankarax.livedataretrofitadapterlibrary.ViewResponse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.launch

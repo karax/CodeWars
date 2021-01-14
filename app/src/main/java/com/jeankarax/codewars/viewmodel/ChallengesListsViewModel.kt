@@ -5,9 +5,9 @@ import androidx.lifecycle.*
 import com.jeankarax.codewars.model.di.DaggerChallengeRepositoryComponent
 import com.jeankarax.codewars.model.repository.IChallengeRepository
 import com.jeankarax.codewars.model.response.ChallengesListResponse
-import com.jeankarax.codewars.model.response.Status
-import com.jeankarax.codewars.model.response.ViewResponse
 import com.jeankarax.codewars.model.room.UserLocalDataBase
+import com.jeankarax.livedataretrofitadapterlibrary.Status
+import com.jeankarax.livedataretrofitadapterlibrary.ViewResponse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -37,17 +37,19 @@ class ChallengesListsViewModel(application: Application): AndroidViewModel(appli
                         Status.SUCCESS -> {
                             auxNextPage++
                             repositoryResponse.data?.get(0)!!.id = auxUserName+"completed"
-                            repositoryResponse.data[0].pageNumber = 0
-                            repositoryResponse.data[0].type = "completed"
+                            repositoryResponse.data!![0].pageNumber = 0
+                            repositoryResponse.data!![0].type = "completed"
 
-                            repositoryResponse.data[1].id = auxUserName+"authored"
-                            repositoryResponse.data[1].pageNumber = 0
-                            repositoryResponse.data[1].type = "authored"
+                            repositoryResponse.data!![1].id = auxUserName+"authored"
+                            repositoryResponse.data!![1].pageNumber = 0
+                            repositoryResponse.data!![1].type = "authored"
                             CoroutineScope(Dispatchers.IO).launch {
-                                UserLocalDataBase(getApplication()).challengeDAO().saveChallengesList(repositoryResponse.data[0])
+                                UserLocalDataBase(getApplication()).challengeDAO().saveChallengesList(
+                                    repositoryResponse.data!![0])
                             }
                             CoroutineScope(Dispatchers.IO).launch {
-                                UserLocalDataBase(getApplication()).challengeDAO().saveChallengesList(repositoryResponse.data[1])
+                                UserLocalDataBase(getApplication()).challengeDAO().saveChallengesList(
+                                    repositoryResponse.data!![1])
                             }
                         }
                     }

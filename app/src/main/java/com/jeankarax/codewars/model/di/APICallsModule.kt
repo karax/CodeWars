@@ -1,7 +1,7 @@
 package com.jeankarax.codewars.model.di
 
-import com.jeankarax.codewars.model.api.LiveDataCallAdapterFactory
 import com.jeankarax.codewars.model.api.APICalls
+import com.jeankarax.livedataretrofitadapterlibrary.LiveDataCallAdapterFactory
 import dagger.Module
 import dagger.Provides
 import retrofit2.Retrofit

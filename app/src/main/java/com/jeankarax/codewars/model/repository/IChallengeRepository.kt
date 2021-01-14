@@ -4,7 +4,7 @@ import android.app.Application
 import androidx.lifecycle.LiveData
 import com.jeankarax.codewars.model.response.ChallengeResponse
 import com.jeankarax.codewars.model.response.ChallengesListResponse
-import com.jeankarax.codewars.model.response.ViewResponse
+import com.jeankarax.livedataretrofitadapterlibrary.ViewResponse
 
 interface IChallengeRepository {
 

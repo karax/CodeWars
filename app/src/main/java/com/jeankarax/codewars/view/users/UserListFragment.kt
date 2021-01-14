@@ -16,9 +16,9 @@ import androidx.navigation.Navigation
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.jeankarax.codewars.R
-import com.jeankarax.codewars.model.response.Status
 import com.jeankarax.codewars.utils.EspressoIdlingResource
 import com.jeankarax.codewars.viewmodel.UserListViewModel
+import com.jeankarax.livedataretrofitadapterlibrary.Status
 import kotlinx.android.synthetic.main.fragment_users.*
 
 class UserListFragment : Fragment() {

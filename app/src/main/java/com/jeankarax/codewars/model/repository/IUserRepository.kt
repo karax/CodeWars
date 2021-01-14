@@ -2,9 +2,8 @@ package com.jeankarax.codewars.model.repository
 
 import android.app.Application
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import com.jeankarax.codewars.model.response.ViewResponse
 import com.jeankarax.codewars.model.response.UserResponse
+import com.jeankarax.livedataretrofitadapterlibrary.ViewResponse
 
 interface IUserRepository {
 

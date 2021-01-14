@@ -4,11 +4,11 @@ import android.app.Application
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
-import com.jeankarax.codewars.model.response.ViewResponse
 import com.jeankarax.codewars.model.api.UserAPI
 import com.jeankarax.codewars.model.response.UserResponse
 import com.jeankarax.codewars.model.room.UserLocalDataBase
 import com.jeankarax.codewars.utils.Utils
+import com.jeankarax.livedataretrofitadapterlibrary.ViewResponse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
